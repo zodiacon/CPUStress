@@ -22,6 +22,7 @@ extern CAppModule _Module;
 #include <atlctrls.h>
 #include <atldlgs.h>
 #include <atlctrlw.h>
+#include <atltypes.h>
 #include <vector>
 #include <wil\resource.h>
 #include <unordered_map>

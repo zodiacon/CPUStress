@@ -5,7 +5,8 @@
 struct ThreadCreateParams;
 
 enum class ActivityLevel : uint16_t {
-	Low = 1,
+	None,
+	Low,
 	Medium,
 	Busy,
 	Maximum
@@ -38,7 +39,9 @@ public:
 	}
 	bool IsSuspended() const;
 	int GetIdealCPU() const;
+	void SetIdealCPU(int cpu);
 	DWORD_PTR GetAffinity() const;
+	void SetAffinity(DWORD_PTR affinity);
 	void GetStackLimits(void*& start, void*& end) const;
 	int GetPriority() const;
 	void SetPriority(int priority);

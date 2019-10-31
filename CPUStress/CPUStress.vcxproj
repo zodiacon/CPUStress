@@ -197,6 +197,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
+    <ClCompile Include="AffinityDlg.cpp" />
     <ClCompile Include="CPUStress.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -211,6 +212,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
+    <ClInclude Include="AffinityDlg.h" />
+    <ClInclude Include="IMainFrame.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="NtDll.h" />
     <ClInclude Include="resource.h" />
@@ -235,6 +238,9 @@
     <Image Include="res\gear_pause.ico" />
     <Image Include="res\gear_run.ico" />
     <Image Include="res\refresh.ico" />
+    <Image Include="res\select_all.ico" />
+    <Image Include="res\select_invert.ico" />
+    <Image Include="res\select_none.ico" />
     <Image Include="res\threads.ico" />
     <Image Include="res\toolbar.bmp" />
   </ItemGroup>

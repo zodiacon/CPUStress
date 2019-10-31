@@ -9,7 +9,7 @@
 #include "View.h"
 #include "MainFrm.h"
 
-CMainFrame::CMainFrame() : m_view(*this) {
+CMainFrame::CMainFrame() : m_view(*this, this) {
 }
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
@@ -84,6 +84,9 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		{ ID_ACTIVITY_BUSY, IDI_ACTIVITY_BUSY },
 		{ ID_ACTIVITY_MAXIMUM, IDI_ACTIVITY_MAX },
 		{ ID_VIEW_SHOWALLTHREADS, IDI_THREADS },
+		{ ID_EDIT_SELECT_ALL, IDI_SELECTALL },
+		{ ID_EDIT_SELECTNONE, IDI_SELECT_NONE },
+		{ ID_EDIT_INVERTSELECTION, IDI_SELECT_INVERT },
 	};
 	for (auto& cmd : cmds)
 		m_CmdBar.AddIcon(AtlLoadIcon(cmd.icon), cmd.id);
@@ -135,12 +138,6 @@ LRESULT CMainFrame::OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 	return 0;
 }
 
-LRESULT CMainFrame::OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	// TODO: add code to initialize document
-
-	return 0;
-}
-
 LRESULT CMainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
@@ -170,6 +167,12 @@ LRESULT CMainFrame::OnAlwaysOnTop(WORD, WORD, HWND, BOOL&) {
 	auto onTop = GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_TOPMOST;
 	SetWindowPos(onTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 	UISetCheck(ID_OPTIONS_ALWAYSONTOP, !onTop);
+
+	return 0;
+}
+
+BOOL CMainFrame::ShowContextMenu(HMENU hMenu, POINT pt) {
+	m_CmdBar.TrackPopupMenu(hMenu, 0, pt.x, pt.y);
 
 	return 0;
 }

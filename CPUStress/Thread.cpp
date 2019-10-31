@@ -3,7 +3,7 @@
 #include "NtDll.h"
 
 Thread::Thread(HANDLE hThread, int index) 
-	: _hThread(hThread), _index(index), _userCreated(false) {
+	: _hThread(hThread), _index(index), _userCreated(false), _level(ActivityLevel::None) {
 }
 
 std::shared_ptr<Thread> Thread::Create(ThreadCreateParams* params) {
@@ -62,10 +62,20 @@ int Thread::GetIdealCPU() const {
 	return proc.Group * 64 + proc.Number;
 }
 
+void Thread::SetIdealCPU(int cpu) {
+	PROCESSOR_NUMBER n = { 0 };
+	n.Number = cpu;
+	::SetThreadIdealProcessorEx(_hThread.get(), &n, nullptr);
+}
+
 DWORD_PTR Thread::GetAffinity() const {
 	NT::THREAD_BASIC_INFORMATION info;
 	NT::NtQueryInformationThread(_hThread.get(), NT::ThreadInfoClass::ThreadBasicInformation, &info, sizeof(info), nullptr);
 	return info.AffinityMask;
+}
+
+void Thread::SetAffinity(DWORD_PTR affinity) {
+	::SetThreadAffinityMask(_hThread.get(), affinity);
 }
 
 void Thread::GetStackLimits(void*& start, void*& end) const {
@@ -80,6 +90,10 @@ void Thread::GetStackLimits(void*& start, void*& end) const {
 
 int Thread::GetPriority() const {
 	return ::GetThreadPriority(_hThread.get());
+}
+
+void Thread::SetPriority(int priority) {
+	::SetThreadPriority(_hThread.get(), priority);
 }
 
 void* Thread::GetTeb() const {
@@ -113,7 +127,7 @@ void Thread::DoWork() {
 		ULONGLONG kernel, user, dummy;
 		if (::GetThreadTimes(_hThread.get(), (FILETIME*)&dummy, (FILETIME*)&dummy, (FILETIME*)&kernel, (FILETIME*)&user)) {
 			auto current = ::GetTickCount64();
-			if (current - _lastCpuTick > 100) {
+			if (current - _lastCpuTick > 400) {
 				_cpuConsumption = (kernel + user - _lastCpuTime) / (current - _lastCpuTick) / GetCPUCount();
 				_lastCpuTick = current;
 				_lastCpuTime = kernel + user;

@@ -32,6 +32,9 @@
     </ClCompile>
     <ClCompile Include="CPUStress.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="AffinityDlg.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainFrm.h">
@@ -53,6 +56,12 @@
     </ClInclude>
     <ClInclude Include="Thread.h">
       <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="IMainFrame.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="AffinityDlg.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +110,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\threads.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\select_all.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\select_invert.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\select_none.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

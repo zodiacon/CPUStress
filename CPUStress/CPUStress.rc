@@ -59,6 +59,10 @@ BEGIN
     POPUP "&Edit"
     BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM "Select &None",                ID_EDIT_SELECTNONE
+        MENUITEM "&Invert Selection",           ID_EDIT_INVERTSELECTION
     END
     POPUP "&View"
     BEGIN
@@ -73,12 +77,12 @@ BEGIN
     BEGIN
         POPUP "&Priority Class"
         BEGIN
-            MENUITEM "&Idle",                       ID_PRIORITYCLASS_IDLE
-            MENUITEM "&Below Normal",               ID_PRIORITYCLASS_BELOWNORMAL
-            MENUITEM "&Normal",                     ID_PRIORITYCLASS_NORMAL
-            MENUITEM "&Above Normal",               ID_PRIORITYCLASS_ABOVENORMAL
-            MENUITEM "&High",                       ID_PRIORITYCLASS_HIGH
-            MENUITEM "&Realtime",                   ID_PRIORITYCLASS_REALTIME
+            MENUITEM "&Idle (4)",                   ID_PRIORITYCLASS_IDLE
+            MENUITEM "&Below Normal (6)",           ID_PRIORITYCLASS_BELOWNORMAL
+            MENUITEM "&Normal (8)",                 ID_PRIORITYCLASS_NORMAL
+            MENUITEM "&Above Normal (10)",          ID_PRIORITYCLASS_ABOVENORMAL
+            MENUITEM "&High (13)",                  ID_PRIORITYCLASS_HIGH
+            MENUITEM "&Realtime (24)",              ID_PRIORITYCLASS_REALTIME
         END
         MENUITEM "&Affinity...",                ID_PROCESS_AFFINITY
         MENUITEM "&CPU Sets...",                ID_PROCESS_CPUSETS
@@ -118,7 +122,54 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About CPUStress",            ID_APP_ABOUT
+        MENUITEM "&About CPUStress...",         ID_APP_ABOUT
+        MENUITEM SEPARATOR
+        MENUITEM "&System Information...",      ID_HELP_SYSTEMINFORMATION
+    END
+END
+
+IDR_CONTEXT MENU
+BEGIN
+    POPUP "thread"
+    BEGIN
+        MENUITEM "&Suspend",                    ID_THREAD_SUSPEND
+        MENUITEM "&Resume",                     ID_THREAD_RESUME
+        MENUITEM "&Kill",                       ID_THREAD_KILL
+        MENUITEM SEPARATOR
+        POPUP "&Activity"
+        BEGIN
+            MENUITEM "&Low (25%)",                  ID_ACTIVITY_LOW
+            MENUITEM "&Medium (50%)",               ID_ACTIVITY_MEDIUM
+            MENUITEM "&Busy (75%)",                 ID_ACTIVITY_BUSY
+            MENUITEM "&Maximum (100%)",             ID_ACTIVITY_MAXIMUM
+        END
+        POPUP "&Priority"
+        BEGIN
+            MENUITEM "&Idle",                       ID_PRIORITY_IDLE
+            MENUITEM "&Lowest",                     ID_PRIORITY_LOWEST
+            MENUITEM "&Below Normal",               ID_PRIORITY_BELOWNORMAL
+            MENUITEM "&Normal",                     ID_PRIORITY_NORMAL
+            MENUITEM "&Above Normal",               ID_PRIORITY_ABOVENORMAL
+            MENUITEM "&Highest",                    ID_PRIORITY_HIGHEST
+            MENUITEM "&Time Critical",              ID_PRIORITY_TIMECRITICAL
+        END
+        MENUITEM "Affinity...",                 ID_THREAD_AFFINITY
+        MENUITEM "&Ideal CPU...",               ID_THREAD_IDEALCPU
+        MENUITEM "Selected CPU Sets...",        ID_THREAD_SELECTEDCPUSETS
+    END
+    POPUP "process"
+    BEGIN
+        POPUP "&Priority Class"
+        BEGIN
+            MENUITEM "&Idle (4)",                   ID_PRIORITYCLASS_IDLE
+            MENUITEM "&Below Normal (6)",           ID_PRIORITYCLASS_BELOWNORMAL
+            MENUITEM "&Normal (8)",                 ID_PRIORITYCLASS_NORMAL
+            MENUITEM "&Above Normal (10)",          ID_PRIORITYCLASS_ABOVENORMAL
+            MENUITEM "&High (13)",                  ID_PRIORITYCLASS_HIGH
+            MENUITEM "&Realtime (24)",              ID_PRIORITYCLASS_REALTIME
+        END
+        MENUITEM "&Affinity...",                ID_PROCESS_AFFINITY
+        MENUITEM "&CPU Sets...",                ID_PROCESS_CPUSETS
     END
 END
 
@@ -156,6 +207,12 @@ IDI_ACTIVITY_MAX        ICON                    "res\\gauge_dial_4.ico"
 
 IDI_THREADS             ICON                    "res\\threads.ico"
 
+IDI_SELECTALL           ICON                    "res\\select_all.ico"
+
+IDI_SELECT_INVERT       ICON                    "res\\select_invert.ico"
+
+IDI_SELECT_NONE         ICON                    "res\\select_none.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -168,8 +225,31 @@ CAPTION "About CPU Stress"
 FONT 9, "Segoe UI", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,66,67,50,14
-    CTEXT           "CPU Stress v3.0\n\n(C)2019 Pavel Yosifovich",IDC_STATIC,33,7,120,32
+    CTEXT           "CPU Stress v3.0\n\n(C)2019 Pavel Yosifovich",IDC_STATIC,33,22,120,32
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+END
+
+IDD_AFFINITY DIALOGEX 0, 0, 239, 165
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Affinity"
+FONT 9, "Segoe UI", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,61,144,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,127,144,50,14
+    CONTROL         "CPU 0",IDC_DUMMY,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,7,7,35,10
+    PUSHBUTTON      "Select All",IDC_SELECTALL,182,7,50,14
+    PUSHBUTTON      "Unselect All",IDC_UNSELECTALL,182,28,50,14
+END
+
+IDD_CPUSETS DIALOGEX 0, 0, 427, 190
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "System CPU Sets"
+FONT 9, "Segoe UI", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,155,169,50,14
+    CONTROL         "",IDC_CPUSETS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,24,413,132
+    LTEXT           "System CPU Sets:",IDC_STATIC,7,11,58,8
+    PUSHBUTTON      "Cancel",IDCANCEL,221,169,50,14
 END
 
 
@@ -187,6 +267,10 @@ BEGIN
         RIGHTMARGIN, 180
         TOPMARGIN, 7
         BOTTOMMARGIN, 81
+    END
+
+    IDD_AFFINITY, DIALOG
+    BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -260,6 +344,11 @@ END
 //
 
 IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_AFFINITY AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

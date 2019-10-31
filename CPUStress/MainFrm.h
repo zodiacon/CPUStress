@@ -5,12 +5,14 @@
 #pragma once
 
 #include "View.h"
+#include "IMainFrame.h"
 
 class CMainFrame : 
 	public CFrameWindowImpl<CMainFrame>, 
 	public CUpdateUI<CMainFrame>,
-	public CMessageFilter, public CIdleHandler
-{
+	public CMessageFilter, 
+	public CIdleHandler, 
+	public IMainFrame {
 public:
 	DECLARE_FRAME_WND_CLASS(nullptr, IDR_MAINFRAME)
 	
@@ -34,13 +36,19 @@ public:
 		UPDATE_ELEMENT(ID_THREAD_SUSPEND, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_THREAD_RESUME, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_THREAD_KILL, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_IDLE, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_BELOWNORMAL, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_NORMAL, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_ABOVENORMAL, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_HIGH, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_PRIORITYCLASS_REALTIME, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_THREAD_AFFINITY, UPDUI_MENUPOPUP)
 	END_UPDATE_UI_MAP()
 
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
-		COMMAND_ID_HANDLER(ID_FILE_NEW, OnFileNew)
 		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR, OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
@@ -59,9 +67,11 @@ public:
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 	LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnAlwaysOnTop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+
+	// Inherited via IMainFrame
+	virtual BOOL ShowContextMenu(HMENU hMenu, POINT pt) override;
 };

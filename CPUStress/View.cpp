@@ -7,8 +7,9 @@
 #include <algorithm>
 #include "View.h"
 #include "Thread.h"
+#include "AffinityDlg.h"
 
-CView::CView(CUpdateUIBase& ui) : m_UI(ui), m_ShowAllThreads(false) {
+CView::CView(CUpdateUIBase& ui, IMainFrame* pFrame) : m_UI(ui), m_pFrame(pFrame), m_ShowAllThreads(false) {
 	ui.UISetCheck(ID_VIEW_SHOWALLTHREADS, FALSE);
 }
 
@@ -26,6 +27,7 @@ void CView::Refresh() {
 	}
 
 	SetItemCountEx(static_cast<int>(m_Threads.size()), LVSICF_NOSCROLL);
+	UpdateUI();
 }
 
 BOOL CView::PreTranslateMessage(MSG* pMsg) {
@@ -182,6 +184,19 @@ std::pair<COLORREF, COLORREF> CView::ActivityLevelToColor(ActivityLevel level) {
 	return { CLR_INVALID, CLR_INVALID };
 }
 
+WORD CView::PriorityClassToId(int priority) {
+	switch (priority) {
+		case IDLE_PRIORITY_CLASS: return ID_PRIORITYCLASS_IDLE;
+		case BELOW_NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_BELOWNORMAL;
+		case NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_NORMAL; break;
+		case ABOVE_NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_ABOVENORMAL; break;
+		case HIGH_PRIORITY_CLASS: return ID_PRIORITYCLASS_HIGH; break;
+		case REALTIME_PRIORITY_CLASS: return ID_PRIORITYCLASS_REALTIME; break;
+	}
+	ATLASSERT(false);
+	return ID_PRIORITYCLASS_NORMAL;
+}
+
 void CView::Redraw() {
 	RedrawItems(GetTopIndex(), GetTopIndex() + GetCountPerPage());
 }
@@ -196,10 +211,14 @@ void CView::UpdateUI() {
 	m_UI.UIEnable(ID_THREAD_RESUME, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_KILL, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_SUSPEND, !threads.empty());
+	m_UI.UIEnable(ID_THREAD_AFFINITY, selected == 1);
+	m_UI.UIEnable(ID_THREAD_IDEALCPU, selected == 1);
 }
 
 LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 	DefWindowProc();
+
+	m_UI.UISetRadioMenuItem(PriorityClassToId(::GetPriorityClass(::GetCurrentProcess())), ID_PRIORITYCLASS_IDLE, ID_PRIORITYCLASS_REALTIME);
 
 	SetExtendedListViewStyle(LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
 
@@ -213,9 +232,9 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		{ L"ID", 100, LVCFMT_RIGHT },
 		{ L"Type", 80 },
 		{ L"Activity", 80 },
-		{ L"Priority", 100 },
+		{ L"Base Priority", 110 },
 		{ L"Ideal CPU", 90, LVCFMT_RIGHT },
-		{ L"Affinity", 120, LVCFMT_RIGHT },
+		{ L"Affinity", 130, LVCFMT_RIGHT },
 		{ L"Created", 80 },
 		{ L"TEB", 130, LVCFMT_RIGHT },
 		{ L"Stack Base", 130, LVCFMT_RIGHT },
@@ -240,9 +259,19 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 	}
 
 	Refresh();
-	UpdateUI();
 
 	SetTimer(1, 1000, nullptr);
+
+	return 0;
+}
+
+LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM, BOOL&) {
+	auto threads = GetSelectedThreads();
+	CMenuHandle hMenu;
+	hMenu.LoadMenuW(IDR_CONTEXT);
+	POINT pt;
+	::GetCursorPos(&pt);
+	m_pFrame->ShowContextMenu(hMenu.GetSubMenu(threads.empty() ? 1 : 0), pt);
 
 	return 0;
 }
@@ -363,7 +392,19 @@ LRESULT CView::OnThreadSuspend(WORD, WORD, HWND, BOOL&) {
 }
 
 LRESULT CView::OnThreadKill(WORD, WORD, HWND, BOOL&) {
-	for (auto& t : GetSelectedThreads()) {
+	auto threads = GetSelectedThreads();
+	auto count = static_cast<int>(threads.size());
+	ATLASSERT(count > 0);
+
+	CString text;
+	if (count == 1)
+		text = L"Kill thread?";
+	else
+		text.Format(L"Kill %d threads?", count);
+	if (MessageBox(text, L"CPUStress", MB_OKCANCEL | MB_DEFBUTTON2 | MB_ICONWARNING) == IDCANCEL)
+		return 0;
+
+	for (auto& t : threads) {
 		m_ThreadMgr.RemoveThread(t->GetId());
 	}
 	return 0;
@@ -373,5 +414,91 @@ LRESULT CView::OnShowAllThreads(WORD, WORD, HWND, BOOL&) {
 	m_ShowAllThreads = !m_ShowAllThreads;
 	m_UI.UISetCheck(ID_VIEW_SHOWALLTHREADS, m_ShowAllThreads);
 
+	return 0;
+}
+
+LRESULT CView::OnSelectAll(WORD, WORD, HWND, BOOL&) {
+	SelectAllItems(true);
+	return 0;
+}
+
+LRESULT CView::OnSelectNone(WORD, WORD, HWND, BOOL&) {
+	SelectAllItems(false);
+	return 0;
+}
+
+LRESULT CView::OnSelectInvert(WORD, WORD, HWND, BOOL&) {
+	for (int i = 0; i < GetItemCount(); i++)
+		SetItemState(i, GetItemState(i, LVIS_SELECTED) == 0 ? LVIS_SELECTED : 0, LVIS_SELECTED);
+
+	return 0;
+}
+
+LRESULT CView::OnSetProcessPriority(WORD, WORD id, HWND, BOOL&) {
+	const DWORD pc[] = {
+		IDLE_PRIORITY_CLASS,
+		BELOW_NORMAL_PRIORITY_CLASS,
+		NORMAL_PRIORITY_CLASS,
+		ABOVE_NORMAL_PRIORITY_CLASS,
+		HIGH_PRIORITY_CLASS,
+		REALTIME_PRIORITY_CLASS
+	};
+	ATLASSERT(id - ID_PRIORITYCLASS_IDLE < _countof(pc) && id >= ID_PRIORITYCLASS_IDLE);
+
+	::SetPriorityClass(::GetCurrentProcess(), pc[id - ID_PRIORITYCLASS_IDLE]);
+	m_UI.UISetRadioMenuItem(id, ID_PRIORITYCLASS_IDLE, ID_PRIORITYCLASS_REALTIME);
+
+	return 0;
+}
+
+LRESULT CView::OnSetThreadPriority(WORD, WORD id, HWND, BOOL&) {
+	const int tp[] = {
+		THREAD_PRIORITY_IDLE,
+		THREAD_PRIORITY_LOWEST,
+		THREAD_PRIORITY_BELOW_NORMAL,
+		THREAD_PRIORITY_NORMAL,
+		THREAD_PRIORITY_ABOVE_NORMAL,
+		THREAD_PRIORITY_HIGHEST,
+		THREAD_PRIORITY_TIME_CRITICAL
+	};
+	ATLASSERT(id - ID_PRIORITY_IDLE < _countof(tp));
+	
+	for (auto& t : GetSelectedThreads())
+		t->SetPriority(tp[id - ID_PRIORITY_IDLE]);
+	Redraw();
+
+	return 0;
+}
+
+LRESULT CView::OnProcessAffinity(WORD, WORD, HWND, BOOL&) {
+	CAffinityDlg dlg(L"Process Affinity");
+	if (IDOK == dlg.DoModal()) {
+		::SetProcessAffinityMask(::GetCurrentProcess(), dlg.GetSelectedAffinity());
+		Redraw();
+	}
+	return 0;
+}
+
+LRESULT CView::OnThreadAffinity(WORD, WORD, HWND, BOOL&) {
+	auto t = GetSelectedThreads()[0];
+	CString title;
+	title.Format(L"Thread %d (TID: %d) Affinity", t->GetIndex(), t->GetId());
+	CAffinityDlg dlg(true, t.get(), title);
+	if (IDOK == dlg.DoModal()) {
+		t->SetAffinity(dlg.GetSelectedAffinity());
+		Redraw();
+	}
+	return 0;
+}
+
+LRESULT CView::OnThreadIdealCPU(WORD, WORD, HWND, BOOL&) {
+	auto t = GetSelectedThreads()[0];
+	CString title;
+	title.Format(L"Thread %d (TID: %d) Ideal CPU", t->GetIndex(), t->GetId());
+	CAffinityDlg dlg(false, t.get(), title);
+	if (IDOK == dlg.DoModal()) {
+		t->SetIdealCPU(dlg.GetSelectedCPU());
+		Redraw();
+	}
 	return 0;
 }
