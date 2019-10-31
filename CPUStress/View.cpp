@@ -28,6 +28,19 @@ void CView::Refresh() {
 
 	SetItemCountEx(static_cast<int>(m_Threads.size()), LVSICF_NOSCROLL);
 	UpdateUI();
+	CString text;
+	text.Format(L"User Created Threads: %d", m_ThreadMgr.GetUserThreads().size());
+	m_UI.UISetText(0, text);
+	text.Format(L"Total Threads: %d", m_ThreadMgr.GetThreadCount());
+	m_UI.UISetText(1, text);
+	
+	DWORD_PTR affinity, sysAffinity;
+	::GetProcessAffinityMask(::GetCurrentProcess(), &affinity, &sysAffinity);
+	text.Format(L"Process Affinity: 0x%llX", (DWORD64)affinity);
+	m_UI.UISetText(2, text);
+
+	text.Format(L"Process Priority: %s", PriorityClassToString(::GetPriorityClass(::GetCurrentProcess())));
+	m_UI.UISetText(3, text);
 }
 
 BOOL CView::PreTranslateMessage(MSG* pMsg) {
@@ -188,13 +201,26 @@ WORD CView::PriorityClassToId(int priority) {
 	switch (priority) {
 		case IDLE_PRIORITY_CLASS: return ID_PRIORITYCLASS_IDLE;
 		case BELOW_NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_BELOWNORMAL;
-		case NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_NORMAL; break;
-		case ABOVE_NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_ABOVENORMAL; break;
-		case HIGH_PRIORITY_CLASS: return ID_PRIORITYCLASS_HIGH; break;
-		case REALTIME_PRIORITY_CLASS: return ID_PRIORITYCLASS_REALTIME; break;
+		case NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_NORMAL;
+		case ABOVE_NORMAL_PRIORITY_CLASS: return ID_PRIORITYCLASS_ABOVENORMAL;
+		case HIGH_PRIORITY_CLASS: return ID_PRIORITYCLASS_HIGH;
+		case REALTIME_PRIORITY_CLASS: return ID_PRIORITYCLASS_REALTIME;
 	}
 	ATLASSERT(false);
 	return ID_PRIORITYCLASS_NORMAL;
+}
+
+PCWSTR CView::PriorityClassToString(int pc) {
+	switch (pc) {
+		case IDLE_PRIORITY_CLASS: return L"Idle (4)";
+		case BELOW_NORMAL_PRIORITY_CLASS: return L"Below Normal (6)";
+		case NORMAL_PRIORITY_CLASS: return L"Normal (8)";
+		case ABOVE_NORMAL_PRIORITY_CLASS: return L"Above Normal (10)";
+		case HIGH_PRIORITY_CLASS: return L"High (13)";
+		case REALTIME_PRIORITY_CLASS: return L"Realtime (24)";
+	}
+	ATLASSERT(false);
+	return L"";
 }
 
 void CView::Redraw() {
@@ -204,15 +230,24 @@ void CView::Redraw() {
 void CView::UpdateUI() {
 	auto selected = GetSelectedCount();
 	auto threads = GetSelectedThreads();
-	m_UI.UIEnable(ID_ACTIVITY_BUSY, !threads.empty());
+	auto userThreads = !threads.empty();
+	m_UI.UIEnable(ID_ACTIVITY_BUSY, userThreads);
 	m_UI.UIEnable(ID_ACTIVITY_LOW, !threads.empty());
 	m_UI.UIEnable(ID_ACTIVITY_MEDIUM, !threads.empty());
 	m_UI.UIEnable(ID_ACTIVITY_MAXIMUM, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_RESUME, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_KILL, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_SUSPEND, !threads.empty());
-	m_UI.UIEnable(ID_THREAD_AFFINITY, selected == 1);
-	m_UI.UIEnable(ID_THREAD_IDEALCPU, selected == 1);
+	m_UI.UIEnable(ID_THREAD_AFFINITY, threads.size() == 1);
+	m_UI.UIEnable(ID_THREAD_IDEALCPU, threads.size() == 1);
+
+	m_UI.UIEnable(ID_PRIORITY_IDLE, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_LOWEST, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_BELOWNORMAL, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_NORMAL, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_ABOVENORMAL, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_HIGHEST, threads.size() == 1);
+	m_UI.UIEnable(ID_PRIORITY_TIMECRITICAL, threads.size() == 1);
 }
 
 LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
@@ -227,14 +262,14 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		int width;
 		int format = LVCFMT_LEFT;
 	} columns[] = {
-		{ L"Index", 70 },
-		{ L"CPU %", 70, LVCFMT_RIGHT },
+		{ L"Index", 50 },
+		{ L"CPU %", 50, LVCFMT_RIGHT },
 		{ L"ID", 100, LVCFMT_RIGHT },
 		{ L"Type", 80 },
-		{ L"Activity", 80 },
-		{ L"Base Priority", 110 },
-		{ L"Ideal CPU", 90, LVCFMT_RIGHT },
-		{ L"Affinity", 130, LVCFMT_RIGHT },
+		{ L"Activity", 70 },
+		{ L"Base Priority", 120 },
+		{ L"Ideal CPU", 70, LVCFMT_RIGHT },
+		{ L"Affinity", 10 + 4 * Thread::GetCPUCount(), LVCFMT_RIGHT },
 		{ L"Created", 80 },
 		{ L"TEB", 130, LVCFMT_RIGHT },
 		{ L"Stack Base", 130, LVCFMT_RIGHT },
@@ -271,7 +306,7 @@ LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM, BOOL&) {
 	hMenu.LoadMenuW(IDR_CONTEXT);
 	POINT pt;
 	::GetCursorPos(&pt);
-	m_pFrame->ShowContextMenu(hMenu.GetSubMenu(threads.empty() ? 1 : 0), pt);
+	m_pFrame->ShowContextMenu(hMenu.GetSubMenu(threads.empty() && GetSelectedCount() == 0 ? 1 : 0), pt);
 
 	return 0;
 }
@@ -322,7 +357,7 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				break;
 
 			case 7:	// affinity
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", data.GetAffinity());
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%llX", (DWORD64)data.GetAffinity());
 				break;
 
 			case 8:	// created

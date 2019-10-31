@@ -128,7 +128,7 @@ void Thread::DoWork() {
 		if (::GetThreadTimes(_hThread.get(), (FILETIME*)&dummy, (FILETIME*)&dummy, (FILETIME*)&kernel, (FILETIME*)&user)) {
 			auto current = ::GetTickCount64();
 			if (current - _lastCpuTick > 400) {
-				_cpuConsumption = (kernel + user - _lastCpuTime) / (current - _lastCpuTick) / GetCPUCount();
+				_cpuConsumption = (int)((kernel + user - _lastCpuTime) / (current - _lastCpuTick)) / GetCPUCount();
 				_lastCpuTick = current;
 				_lastCpuTime = kernel + user;
 			}

@@ -68,6 +68,7 @@ private:
 	static PCWSTR ThreadPriorityToString(int priority);
 	static std::pair<COLORREF, COLORREF> ActivityLevelToColor(ActivityLevel level);
 	static WORD PriorityClassToId(int priority);
+	static PCWSTR PriorityClassToString(int pc);
 
 	void Redraw();
 	void UpdateUI();

@@ -21,6 +21,7 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
 
 BOOL CMainFrame::OnIdle() {
 	UIUpdateToolBar();
+	UIUpdateStatusBar();
 	return FALSE;
 }
 
@@ -99,12 +100,18 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	CReBarCtrl(m_hWndToolBar).LockBands(TRUE);
 
 	CreateSimpleStatusBar();
+	m_StatusBar.SubclassWindow(m_hWndStatusBar);
+	int paneWidths[] = { 140, 250, 420, 620 };
+	int panes[] = { 120, 121, 122, 123 };
+	m_StatusBar.SetPanes(panes, _countof(panes));
+	m_StatusBar.SetParts(_countof(panes), paneWidths);
 
 	m_hWndClient = m_view.Create(m_hWnd, rcDefault, nullptr,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_REPORT,
 		WS_EX_CLIENTEDGE);
 
 	UIAddToolBar(hWndToolBar);
+	UIAddStatusBar(m_hWndStatusBar);
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 
@@ -118,6 +125,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ATLASSERT(pLoop != nullptr);
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
+
+	SetWindowPos(nullptr, 0, 0, 1200, 500, SWP_NOMOVE | SWP_NOREPOSITION);
 
 	return 0;
 }
