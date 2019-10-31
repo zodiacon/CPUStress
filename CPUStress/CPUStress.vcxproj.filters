@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{3a7161ff-677a-4586-823f-3c4a8dc9876a}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest</Extensions>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{50d1f677-5d64-41e0-9e95-e0dca0c22f7c}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Models">
+      <UniqueIdentifier>{b871fa00-3b77-4627-93c9-6c5df5d079f6}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Thread.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadManager.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="AboutDlg.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="View.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUStress.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainFrm.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="View.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="AboutDlg.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="NtDll.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ThreadManager.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CPUStress.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\CPUStress.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gear.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gear_add.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gear_delete.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gear_pause.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gear_run.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\refresh.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gauge_dial_1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gauge_dial_2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gauge_dial_3.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\gauge_dial_4.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\threads.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
