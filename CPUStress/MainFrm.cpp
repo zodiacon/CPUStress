@@ -126,7 +126,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
-	SetWindowPos(nullptr, 0, 0, 1200, 500, SWP_NOMOVE | SWP_NOREPOSITION);
+	SetWindowPos(nullptr, 0, 0, 840, 400, SWP_NOMOVE | SWP_NOREPOSITION);
 
 	return 0;
 }

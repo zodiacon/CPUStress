@@ -297,6 +297,8 @@ BEGIN
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY 
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+	"A",			ID_EDIT_SELECT_ALL, VIRTKEY, CONTROL
+	VK_F5,			ID_VIEW_REFRESH, VIRTKEY
 END
 
 
@@ -375,6 +377,16 @@ BEGIN
     ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
     ID_FILE_PRINT           "Print the active document\nPrint"
     ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+	ID_THREAD_CREATENEWTHREAD	"Create a new thread\nCreate Thread"
+	ID_THREAD_CREATE4THREADS	"Create 4 threads"
+	ID_THREAD_SUSPEND			"Suspend thread(s)\nSuspend"
+	ID_THREAD_RESUME			"Resume thread(s)\nResume"
+	ID_THREAD_KILL				"Kill thread(s)\nKill"
+	ID_ACTIVITY_LOW				"Low activity (25%)\nLow (25%)"
+	ID_ACTIVITY_MEDIUM			"Medium activity (50%)\nMedium (50%)"
+	ID_ACTIVITY_BUSY			"Busy activity (75%)\nBusy (75%)"
+	ID_ACTIVITY_MAXIMUM			"Maximum activity (100%)\nMaximum (100%)"
+	ID_VIEW_SHOWALLTHREADS		"Show all threads\nAll Threads"
 END
 
 STRINGTABLE
@@ -407,10 +419,10 @@ BEGIN
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
     ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
-    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_SELECT_ALL      "Select all threads\nSelect All"
+	ID_EDIT_SELECTNONE      "Deselect all threads\nSelect None"
+	ID_EDIT_INVERTSELECTION    "Invert thread selection\nInvert Selection"
+	ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 

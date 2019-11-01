@@ -148,15 +148,18 @@ bool CView::CompareItems(Thread& t1, Thread& t2, const SortInfo* si) {
 		case 8:	// created
 			return SortNumbers(t1.GetCreateTime(), t2.GetCreateTime(), si->SortAscending);
 
-		case 9:	// TEB
+		case 9: // CPU time
+			return SortNumbers(t1.GetCPUTime().GetTimeSpan(), t2.GetCPUTime().GetTimeSpan(), si->SortAscending);
+
+		case 10:	// TEB
 			return SortNumbers(t1.GetTeb(), t2.GetTeb(), si->SortAscending);
 
-		case 10:	// stack base, limit
-		case 11:
+		case 11:	// stack base, limit
+		case 12:
 			PVOID start1, end1, start2, end2;
 			t1.GetStackLimits(start1, end1);
 			t2.GetStackLimits(start2, end2);
-			return SortNumbers(si->SortColumn == 10 ? start1 : end1, si->SortColumn == 10 ? start2 : end2, si->SortAscending);
+			return SortNumbers(si->SortColumn == 11 ? start1 : end1, si->SortColumn == 11 ? start2 : end2, si->SortAscending);
 
 	}
 	return false;
@@ -271,9 +274,10 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		{ L"Ideal CPU", 70, LVCFMT_RIGHT },
 		{ L"Affinity", 10 + 4 * Thread::GetCPUCount(), LVCFMT_RIGHT },
 		{ L"Created", 80 },
-		{ L"TEB", 130, LVCFMT_RIGHT },
-		{ L"Stack Base", 130, LVCFMT_RIGHT },
-		{ L"Stack Limit", 130, LVCFMT_RIGHT },
+		{ L"CPU Time", 100 },
+		//{ L"TEB", 130, LVCFMT_RIGHT },
+		//{ L"Stack Base", 130, LVCFMT_RIGHT },
+		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
 	};
 
 	CImageList images;
@@ -364,17 +368,21 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				::StringCchCopy(item.pszText, item.cchTextMax, data.GetCreateTime().Format(L"%X"));
 				break;
 
-			case 9:	// TEB
+			case 9:	// CPU time
+				::StringCchCopy(item.pszText, item.cchTextMax, CTimeSpan(data.GetCPUTime().GetTimeSpan() / 10000000LL).Format(L"%H:%M:%S"));
+				break;
+
+			case 10:	// TEB
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", data.GetTeb());
 				break;
 
-			case 10: // stack base
-			case 11: // stack limit
+			case 11: // stack base
+			case 12: // stack limit
 			{
 				void* start;
 				void* end;
 				data.GetStackLimits(start, end);
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 10 ? start : end);
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 11 ? start : end);
 				break;
 			}
 		}
