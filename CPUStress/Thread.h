@@ -43,8 +43,10 @@ public:
 	DWORD_PTR GetAffinity() const;
 	void SetAffinity(DWORD_PTR affinity);
 	void GetStackLimits(void*& start, void*& end) const;
+	int GetBasePriority() const;
 	int GetPriority() const;
-	void SetPriority(int priority);
+
+	void SetBasePriority(int priority);
 	int GetCPU() const {
 		return _cpuConsumption;
 	}

@@ -88,11 +88,17 @@ void Thread::GetStackLimits(void*& start, void*& end) const {
 	}
 }
 
-int Thread::GetPriority() const {
+int Thread::GetBasePriority() const {
 	return ::GetThreadPriority(_hThread.get());
 }
 
-void Thread::SetPriority(int priority) {
+int Thread::GetPriority() const {
+	NT::THREAD_BASIC_INFORMATION info;
+	NT::NtQueryInformationThread(_hThread.get(), NT::ThreadInfoClass::ThreadBasicInformation, &info, sizeof(info), nullptr);
+	return info.Priority;
+}
+
+void Thread::SetBasePriority(int priority) {
 	::SetThreadPriority(_hThread.get(), priority);
 }
 

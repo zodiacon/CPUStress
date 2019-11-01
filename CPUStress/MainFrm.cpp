@@ -37,12 +37,11 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	tb.Create(m_hWnd, nullptr, nullptr, ATL_SIMPLE_TOOLBAR_PANE_STYLE, 0, ATL_IDW_TOOLBAR);
 	CImageList tbImages, cbImages;
 	tbImages.Create(32, 32, ILC_COLOR32 | ILC_COLOR, 8, 4);
-	//m_CmdBar.SetImageList(cbImages.Detach());
 
 	struct {
 		UINT id;
 		int image;
-		int style = TBSTYLE_BUTTON;
+		int style = BTNS_BUTTON;
 	} buttons[] = {
 		{ ID_THREAD_CREATENEWTHREAD, IDI_THREAD_ADD },
 		{ 0 },
@@ -58,6 +57,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		{ 0 },
 		{ ID_VIEW_SHOWALLTHREADS, IDI_THREADS },
 	};
+
 	tb.SetImageList(tbImages);
 
 	m_CmdBar.m_bAlphaImages = true;
@@ -101,8 +101,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 	CreateSimpleStatusBar();
 	m_StatusBar.SubclassWindow(m_hWndStatusBar);
-	int paneWidths[] = { 140, 250, 420, 620 };
-	int panes[] = { 120, 121, 122, 123 };
+	int paneWidths[] = { 140, 250, 350, 450 + Thread::GetCPUCount() * 4, 740 };
+	int panes[] = { 120, 121, 122, 123, 124 };
 	m_StatusBar.SetPanes(panes, _countof(panes));
 	m_StatusBar.SetParts(_countof(panes), paneWidths);
 
@@ -117,7 +117,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 	CString text;
 	GetWindowText(text);
-	text.Format(L"%s (PID: %d)", text, ::GetCurrentProcessId());
+	text.Format(L"%s (PID: %u)", (PCWSTR)text, ::GetCurrentProcessId());
 	SetWindowText(text);
 
 	// register object for message filtering and idle updates
@@ -126,7 +126,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
-	SetWindowPos(nullptr, 0, 0, 840, 400, SWP_NOMOVE | SWP_NOREPOSITION);
+	SetWindowPos(nullptr, 0, 0, 890, 430, SWP_NOMOVE | SWP_NOREPOSITION);
 
 	return 0;
 }

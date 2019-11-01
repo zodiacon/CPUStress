@@ -31,16 +31,21 @@ void CView::Refresh() {
 	CString text;
 	text.Format(L"User Created Threads: %d", m_ThreadMgr.GetUserThreads().size());
 	m_UI.UISetText(0, text);
-	text.Format(L"Total Threads: %d", m_ThreadMgr.GetThreadCount());
+
+	auto count = std::count_if(m_ThreadMgr.GetUserThreads().begin(), m_ThreadMgr.GetUserThreads().end(), [](auto& t) { return !t->IsSuspended(); });
+	text.Format(L"Active Threads: %d", count);
 	m_UI.UISetText(1, text);
+
+	text.Format(L"Total Threads: %d", m_ThreadMgr.GetThreadCount());
+	m_UI.UISetText(2, text);
 	
 	DWORD_PTR affinity, sysAffinity;
 	::GetProcessAffinityMask(::GetCurrentProcess(), &affinity, &sysAffinity);
 	text.Format(L"Process Affinity: 0x%llX", (DWORD64)affinity);
-	m_UI.UISetText(2, text);
+	m_UI.UISetText(3, text);
 
 	text.Format(L"Process Priority: %s", PriorityClassToString(::GetPriorityClass(::GetCurrentProcess())));
-	m_UI.UISetText(3, text);
+	m_UI.UISetText(4, text);
 }
 
 BOOL CView::PreTranslateMessage(MSG* pMsg) {
@@ -136,30 +141,33 @@ bool CView::CompareItems(Thread& t1, Thread& t2, const SortInfo* si) {
 		case 4:	// activity
 			return SortNumbers(t1.GetActivityLevel(), t2.GetActivityLevel(), si->SortAscending);
 
-		case 5:	// priority
+		case 5:	// base priority
+			return SortNumbers(t1.GetBasePriority(), t2.GetBasePriority(), si->SortAscending);
+
+		case 6:	// base priority
 			return SortNumbers(t1.GetPriority(), t2.GetPriority(), si->SortAscending);
 
-		case 6:	// ideal CPU
+		case 7:	// ideal CPU
 			return SortNumbers(t1.GetIdealCPU(), t2.GetIdealCPU(), si->SortAscending);
 
-		case 7:	// affinity
+		case 8:	// affinity
 			return SortNumbers(t1.GetAffinity(), t2.GetAffinity(), si->SortAscending);
 
-		case 8:	// created
+		case 9:	// created
 			return SortNumbers(t1.GetCreateTime(), t2.GetCreateTime(), si->SortAscending);
 
-		case 9: // CPU time
+		case 10: // CPU time
 			return SortNumbers(t1.GetCPUTime().GetTimeSpan(), t2.GetCPUTime().GetTimeSpan(), si->SortAscending);
 
-		case 10:	// TEB
+		case 11:	// TEB
 			return SortNumbers(t1.GetTeb(), t2.GetTeb(), si->SortAscending);
 
-		case 11:	// stack base, limit
-		case 12:
+		case 12:	// stack base, limit
+		case 13:
 			PVOID start1, end1, start2, end2;
 			t1.GetStackLimits(start1, end1);
 			t2.GetStackLimits(start2, end2);
-			return SortNumbers(si->SortColumn == 11 ? start1 : end1, si->SortColumn == 11 ? start2 : end2, si->SortAscending);
+			return SortNumbers(si->SortColumn == 12 ? start1 : end1, si->SortColumn == 12 ? start2 : end2, si->SortAscending);
 
 	}
 	return false;
@@ -266,15 +274,16 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		int format = LVCFMT_LEFT;
 	} columns[] = {
 		{ L"Index", 50 },
-		{ L"CPU %", 50, LVCFMT_RIGHT },
-		{ L"ID", 100, LVCFMT_RIGHT },
+		{ L"CPU %", 50, LVCFMT_CENTER },
+		{ L"ID", 100, LVCFMT_CENTER },
 		{ L"Type", 80 },
 		{ L"Activity", 70 },
 		{ L"Base Priority", 120 },
-		{ L"Ideal CPU", 70, LVCFMT_RIGHT },
+		{ L"Priority", 50, LVCFMT_CENTER },
+		{ L"Ideal CPU", 70, LVCFMT_CENTER },
 		{ L"Affinity", 10 + 4 * Thread::GetCPUCount(), LVCFMT_RIGHT },
 		{ L"Created", 80 },
-		{ L"CPU Time", 100 },
+		{ L"CPU Time", 90 },
 		//{ L"TEB", 130, LVCFMT_RIGHT },
 		//{ L"Stack Base", 130, LVCFMT_RIGHT },
 		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
@@ -352,37 +361,41 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 					item.pszText = (PWSTR)ActivityLevelToString(data.GetActivityLevel());
 				break;
 
-			case 5:	// priority
-				item.pszText = (PWSTR)ThreadPriorityToString(data.GetPriority());
+			case 5:	// base priority
+				item.pszText = (PWSTR)ThreadPriorityToString(data.GetBasePriority());
 				break;
 
-			case 6:	// ideal CPU
+			case 6:	// priority
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"%d", data.GetPriority());
+				break;
+
+			case 7:	// ideal CPU
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"%d", data.GetIdealCPU());
 				break;
 
-			case 7:	// affinity
+			case 8:	// affinity
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%llX", (DWORD64)data.GetAffinity());
 				break;
 
-			case 8:	// created
+			case 9:	// created
 				::StringCchCopy(item.pszText, item.cchTextMax, data.GetCreateTime().Format(L"%X"));
 				break;
 
-			case 9:	// CPU time
+			case 10:	// CPU time
 				::StringCchCopy(item.pszText, item.cchTextMax, CTimeSpan(data.GetCPUTime().GetTimeSpan() / 10000000LL).Format(L"%H:%M:%S"));
 				break;
 
-			case 10:	// TEB
+			case 11:	// TEB
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", data.GetTeb());
 				break;
 
-			case 11: // stack base
-			case 12: // stack limit
+			case 12: // stack base
+			case 13: // stack limit
 			{
 				void* start;
 				void* end;
 				data.GetStackLimits(start, end);
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 11 ? start : end);
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 12 ? start : end);
 				break;
 			}
 		}
@@ -507,7 +520,7 @@ LRESULT CView::OnSetThreadPriority(WORD, WORD id, HWND, BOOL&) {
 	ATLASSERT(id - ID_PRIORITY_IDLE < _countof(tp));
 	
 	for (auto& t : GetSelectedThreads())
-		t->SetPriority(tp[id - ID_PRIORITY_IDLE]);
+		t->SetBasePriority(tp[id - ID_PRIORITY_IDLE]);
 	Redraw();
 
 	return 0;
