@@ -3,8 +3,8 @@
 // Used by CPUStress.rc
 //
 #define IDD_ABOUTBOX                    100
-#define IDD_AFFINITY					101
-#define IDD_CPUSETS						102
+#define IDD_AFFINITY                    101
+#define IDD_CPUSETS                     102
 #define IDR_MAINFRAME                   128
 #define IDI_THREAD                      202
 #define IDI_THREAD_ADD                  203
@@ -23,6 +23,11 @@
 #define IDI_SELECT_INVERT               216
 #define IDI_ICON3                       217
 #define IDI_SELECT_NONE                 217
+#define IDC_DUMMY                       1000
+#define IDC_CPUSETS                     1000
+#define IDC_SELECTALL                   1001
+#define IDC_UNSELECTALL                 1002
+#define IDC_BUTTON4                     1006
 #define ID_THREAD_CREATENEWTHREAD       32777
 #define ID_THREAD_CREATE4THREADS        32778
 #define ID_THREAD_SUSPEND               32779
@@ -61,18 +66,16 @@
 #define ID_EDIT_SELECTNONE              32812
 #define ID_EDIT_INVERTSELECTION         32813
 #define ID_HELP_SYSTEMINFORMATION       32814
-#define IDC_DUMMY						1000
-#define IDC_SELECTALL					1001
-#define IDC_UNSELECTALL					1002
-#define IDC_CPUSETS						1000
+#define ID_SYSTEM_CPUSETS               32815
+#define ID_SYSTEM_INFORMATION           32816
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        218
-#define _APS_NEXT_COMMAND_VALUE         32815
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_RESOURCE_VALUE        219
+#define _APS_NEXT_COMMAND_VALUE         32817
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

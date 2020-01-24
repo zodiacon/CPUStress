@@ -8,8 +8,17 @@
 #include "aboutdlg.h"
 #include "View.h"
 #include "MainFrm.h"
+#include "CPUSetsDlg.h"
 
 CMainFrame::CMainFrame() : m_view(*this, this) {
+}
+
+bool CMainFrame::IsCPUSetsAvailable() const {
+	if (!IsWindows10OrGreater()) {
+		AtlMessageBox(*this, L"CPU Sets are supported on Windows 10 and later versions", L"CPU Stress", MB_ICONEXCLAMATION);
+		return false;
+	}
+	return true;
 }
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
@@ -32,6 +41,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	m_CmdBar.AttachMenu(GetMenu());
 	// remove old menu
 	SetMenu(nullptr);
+	m_CmdBar.m_bAlphaImages = true;
 
 	CToolBarCtrl tb;
 	tb.Create(m_hWnd, nullptr, nullptr, ATL_SIMPLE_TOOLBAR_PANE_STYLE, 0, ATL_IDW_TOOLBAR);
@@ -59,8 +69,6 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	};
 
 	tb.SetImageList(tbImages);
-
-	m_CmdBar.m_bAlphaImages = true;
 
 	for (auto& b : buttons) {
 		if (b.id == 0)
@@ -169,6 +177,30 @@ LRESULT CMainFrame::OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 LRESULT CMainFrame::OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	CAboutDlg dlg;
 	dlg.DoModal();
+	return 0;
+}
+
+LRESULT CMainFrame::OnSystemCPUSets(WORD, WORD, HWND, BOOL&) {
+	if (!IsCPUSetsAvailable())
+		return 0;
+
+	CCPUSetsDlg dlg(CPUSetsType::System);
+	dlg.DoModal();
+	return 0;
+}
+
+LRESULT CMainFrame::OnProcessCPUSets(WORD, WORD, HWND, BOOL&) {
+	if (!IsCPUSetsAvailable())
+		return 0;
+
+	CCPUSetsDlg dlg(CPUSetsType::Process);
+	if (dlg.DoModal() == IDOK) {
+		ULONG count;
+		auto sets = dlg.GetCpuSet(count);
+		ATLASSERT(sets);
+		if (!::SetProcessDefaultCpuSets(::GetCurrentProcess(), count ? sets : nullptr, count))
+			MessageBox(L"Failed to set process CPU set", L"CPU Stress", MB_ICONERROR);
+	}
 	return 0;
 }
 

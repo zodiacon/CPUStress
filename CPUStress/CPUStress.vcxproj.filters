@@ -35,6 +35,9 @@
     <ClCompile Include="AffinityDlg.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="CPUSetsDlg.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainFrm.h">
@@ -61,6 +64,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="AffinityDlg.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUSetsDlg.h">
       <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
@@ -124,5 +130,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="manifest.xml" />
   </ItemGroup>
 </Project>
