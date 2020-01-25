@@ -8,6 +8,7 @@
 #include "View.h"
 #include "Thread.h"
 #include "AffinityDlg.h"
+#include "CPUSetsDlg.h"
 
 CView::CView(CUpdateUIBase& ui, IMainFrame* pFrame) : m_UI(ui), m_pFrame(pFrame), m_ShowAllThreads(false) {
 	ui.UISetCheck(ID_VIEW_SHOWALLTHREADS, FALSE);
@@ -251,6 +252,7 @@ void CView::UpdateUI() {
 	m_UI.UIEnable(ID_THREAD_SUSPEND, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_AFFINITY, threads.size() == 1);
 	m_UI.UIEnable(ID_THREAD_IDEALCPU, threads.size() == 1);
+	m_UI.UIEnable(ID_THREAD_SELECTEDCPUSETS, threads.size() == 1);
 
 	m_UI.UIEnable(ID_PRIORITY_IDLE, threads.size() == 1);
 	m_UI.UIEnable(ID_PRIORITY_LOWEST, threads.size() == 1);
@@ -557,4 +559,16 @@ LRESULT CView::OnThreadIdealCPU(WORD, WORD, HWND, BOOL&) {
 		Redraw();
 	}
 	return 0;
+}
+
+LRESULT CView::OnThreadSelectedCPUset(WORD, WORD, HWND, BOOL&) {
+	auto thread = GetSelectedThreads()[0];
+
+	CCPUSetsDlg dlg(CPUSetsType::Thread, thread.get());
+	if (dlg.DoModal() == IDOK) {
+		ULONG count;
+		auto set = dlg.GetCpuSet(count);
+		thread->SetCPUSet(set, count);
+	}
+	return LRESULT();
 }

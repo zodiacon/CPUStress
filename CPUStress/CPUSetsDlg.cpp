@@ -2,8 +2,9 @@
 #include "CPUSetsDlg.h"
 #include <VersionHelpers.h>
 #include <string>
+#include "Thread.h"
 
-CCPUSetsDlg::CCPUSetsDlg(CPUSetsType type, DWORD id) : m_Type(type), m_Id(id) {
+CCPUSetsDlg::CCPUSetsDlg(CPUSetsType type, Thread* thread) : m_Type(type), m_pThread(thread) {
 }
 
 ULONG* CCPUSetsDlg::GetCpuSet(ULONG& count) const {
@@ -29,7 +30,7 @@ LRESULT CCPUSetsDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
 	if (m_Type == CPUSetsType::Process)
 		SetWindowText(L"Process CPU Set");
 	else if (m_Type == CPUSetsType::Thread)
-		SetWindowText((L"Thread " + std::to_wstring(m_Id) + L" Selected CPU Set").c_str());
+		SetWindowText((L"Thread " + std::to_wstring(m_pThread->GetId()) + L" Selected CPU Set").c_str());
 
 	FillCPUSets();
 
@@ -71,6 +72,16 @@ void CCPUSetsDlg::FillCPUSets() {
 			EndDialog(IDCANCEL);
 			return;
 		}
+	}
+	else if (m_Type == CPUSetsType::Thread) {
+		std::vector<ULONG> s;
+		if(!m_pThread->GetCpuSet(s)) {
+			AtlMessageBox(*this, L"Failed to get thread selected CPU set", L"CPU Stress", MB_ICONERROR);
+			EndDialog(IDCANCEL);
+			return;
+		}
+		len = (ULONG)s.size();
+		::memcpy(ids.get(), s.data(), len * sizeof(ULONG));
 	}
 
 	CString text;

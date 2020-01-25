@@ -45,8 +45,11 @@ public:
 	void GetStackLimits(void*& start, void*& end) const;
 	int GetBasePriority() const;
 	int GetPriority() const;
+	bool GetCpuSet(std::vector<ULONG>&) const;
 
 	void SetBasePriority(int priority);
+	bool SetCPUSet(ULONG* set, ULONG count);
+
 	int GetCPU() const {
 		return _cpuConsumption;
 	}

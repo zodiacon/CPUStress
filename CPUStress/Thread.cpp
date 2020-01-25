@@ -98,8 +98,24 @@ int Thread::GetPriority() const {
 	return info.Priority;
 }
 
+ bool Thread::GetCpuSet(std::vector<ULONG>& sets ) const {
+	ULONG set[64];
+	ULONG count;
+	if (::GetThreadSelectedCpuSets(_hThread.get(), set, _countof(set), &count)) {
+		sets.resize(count);
+		if (count > 0)
+			::memcpy(sets.data(), set, count * sizeof(ULONG));
+		return true;
+	}
+	return false;
+}
+
 void Thread::SetBasePriority(int priority) {
 	::SetThreadPriority(_hThread.get(), priority);
+}
+
+bool Thread::SetCPUSet(ULONG* set, ULONG count) {
+	return ::SetThreadSelectedCpuSets(_hThread.get(), set, count);
 }
 
 void* Thread::GetTeb() const {

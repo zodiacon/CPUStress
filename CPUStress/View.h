@@ -59,6 +59,7 @@ public:
 		COMMAND_ID_HANDLER(ID_PROCESS_AFFINITY, OnProcessAffinity)
 		COMMAND_ID_HANDLER(ID_THREAD_AFFINITY, OnThreadAffinity)
 		COMMAND_ID_HANDLER(ID_THREAD_IDEALCPU, OnThreadIdealCPU)
+		COMMAND_ID_HANDLER(ID_THREAD_SELECTEDCPUSETS, OnThreadSelectedCPUset)
 	END_MSG_MAP()
 
 private:
@@ -93,6 +94,7 @@ private:
 	LRESULT OnProcessAffinity(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadAffinity(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadIdealCPU(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnThreadSelectedCPUset(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	// Handler prototypes (uncomment arguments if needed):
 	//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

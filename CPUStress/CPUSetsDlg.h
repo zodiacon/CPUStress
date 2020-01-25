@@ -8,9 +8,11 @@ enum class CPUSetsType {
 	Thread
 };
 
+class Thread;
+
 class CCPUSetsDlg : public CDialogImpl<CCPUSetsDlg> {
 public:
-	CCPUSetsDlg(CPUSetsType type, DWORD id = 0);
+	CCPUSetsDlg(CPUSetsType type, Thread* thread = nullptr);
 	enum { IDD = IDD_CPUSETS };
 
 	ULONG* GetCpuSet(ULONG& count) const;
@@ -33,6 +35,6 @@ private:
 	CPUSetsType m_Type;
 	std::unique_ptr<ULONG[]> m_CpuSets;
 	ULONG m_CpuSetCount;
-	DWORD m_Id;
+	Thread* m_pThread;
 };
 
