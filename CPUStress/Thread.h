@@ -16,6 +16,7 @@ class Thread {
 public:
 	Thread();
 	Thread(HANDLE hThread, int index);
+
 	static std::shared_ptr<Thread> Create(ThreadCreateParams* params = nullptr);
 
 	DWORD GetId() const;

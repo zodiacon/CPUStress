@@ -21,8 +21,10 @@ void ThreadManager::EnumThreads() {
 	_userThreads = _threads;
 
 	while (STATUS_SUCCESS == NT::NtGetNextThread(GetCurrentProcess(), hThread, THREAD_ALL_ACCESS, 0, 0, &hThread)) {
-		if (::WaitForSingleObject(hThread, 0) == WAIT_OBJECT_0)
+		if (::WaitForSingleObject(hThread, 0) == WAIT_OBJECT_0) {
+			::CloseHandle(hThread);
 			continue;
+		}
 		auto it = std::find_if(_threads.begin(), _threads.end(), [hThread, this](auto& t) { return ::GetThreadId(hThread) == t->GetId(); });
 		if (it == _threads.end()) {
 			auto t = std::make_shared<Thread>(hThread, index);
