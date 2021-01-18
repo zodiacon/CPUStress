@@ -1,7 +1,7 @@
 // CPUStress.cpp : main source file for CPUStress.exe
 //
 
-#include "stdafx.h"
+#include "pch.h"
 
 #include "resource.h"
 

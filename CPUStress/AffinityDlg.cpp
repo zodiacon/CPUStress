@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "pch.h"
 #include "AffinityDlg.h"
 
 CAffinityDlg::CAffinityDlg(bool affinity, Thread* pThread, const CString& title)

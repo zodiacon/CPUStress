@@ -23,11 +23,14 @@
 #define IDI_SELECT_INVERT               216
 #define IDI_ICON3                       217
 #define IDI_SELECT_NONE                 217
+#define IDD_SYSINFO                     219
 #define IDC_DUMMY                       1000
 #define IDC_CPUSETS                     1000
 #define IDC_SELECTALL                   1001
 #define IDC_UNSELECTALL                 1002
-#define IDC_BUTTON4                     1006
+#define IDC_LINK                        1007
+#define IDC_LIST1                       1008
+#define IDC_LIST                        1008
 #define ID_THREAD_CREATENEWTHREAD       32777
 #define ID_THREAD_CREATE4THREADS        32778
 #define ID_THREAD_SUSPEND               32779
@@ -73,9 +76,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        219
+#define _APS_NEXT_RESOURCE_VALUE        221
 #define _APS_NEXT_COMMAND_VALUE         32817
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

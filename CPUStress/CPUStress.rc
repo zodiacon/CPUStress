@@ -75,8 +75,9 @@ BEGIN
     END
     POPUP "&System"
     BEGIN
-        MENUITEM "&Information...",             ID_SYSTEM_INFORMATION
         MENUITEM "&CPU Sets...",                ID_SYSTEM_CPUSETS
+        MENUITEM SEPARATOR
+        MENUITEM "&Information...",             ID_SYSTEM_INFORMATION
     END
     POPUP "&Process"
     BEGIN
@@ -224,14 +225,16 @@ IDI_SELECT_NONE         ICON                    "res\\select_none.ico"
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 187, 88
+IDD_ABOUTBOX DIALOGEX 0, 0, 187, 102
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About CPU Stress"
 FONT 9, "Segoe UI", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,66,67,50,14
-    CTEXT           "CPU Stress v3.0\n\n(C)2019-2020 Pavel Yosifovich",IDC_STATIC,33,22,120,32
+    DEFPUSHBUTTON   "OK",IDOK,68,81,50,14
+    CTEXT           "CPU Stress v3.1\n\n©2019-2021 Pavel Yosifovich",IDC_STATIC,33,22,120,32
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    CONTROL         "<a>https://github.com/zodiacon/CPUStress</a>",IDC_LINK,
+                    "SysLink",WS_TABSTOP,31,57,126,14
 END
 
 IDD_AFFINITY DIALOGEX 0, 0, 239, 165
@@ -256,6 +259,15 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,203,197,50,14
 END
 
+IDD_SYSINFO DIALOGEX 0, 0, 231, 140
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "System Information"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,90,119,50,14
+    CONTROL         "",IDC_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_DISABLED | WS_TABSTOP,6,6,216,96
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -270,7 +282,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 180
         TOPMARGIN, 7
-        BOTTOMMARGIN, 81
+        BOTTOMMARGIN, 95
     END
 
     IDD_AFFINITY, DIALOG
@@ -280,6 +292,14 @@ BEGIN
     IDD_CPUSETS, DIALOG
     BEGIN
         BOTTOMMARGIN, 211
+    END
+
+    IDD_SYSINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 224
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 133
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -318,7 +338,7 @@ END
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ PRODUCTVERSION 3,1,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -326,20 +346,20 @@ VS_VERSION_INFO VERSIONINFO
  FILEFLAGS 0x0L
 #endif
  FILEOS 0x4L
- FILETYPE 0x2L
+ FILETYPE 0x1L
  FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "CPUStress Module"
             VALUE "FileVersion", "1, 0, 0, 1"
             VALUE "InternalName", "CPUStress"
-            VALUE "LegalCopyright", "Copyright 2019"
+            VALUE "LegalCopyright", "©2019-2021 Pavel Yosifovich"
             VALUE "OriginalFilename", "CPUStress.exe"
-            VALUE "ProductName", "CPUStress Module"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductName", "CPU Stress"
+            VALUE "ProductVersion", "3.1.0.1"
         END
     END
     BLOCK "VarFileInfo"
@@ -369,6 +389,11 @@ BEGIN
     0
 END
 
+IDD_SYSINFO AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -377,7 +402,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "CPU Stress v3.0 (C)2019 Pavel Yosifovich"
+    IDR_MAINFRAME           "CPU Stress v3.1"
 END
 
 STRINGTABLE

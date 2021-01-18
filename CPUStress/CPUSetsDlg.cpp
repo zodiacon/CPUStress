@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "pch.h"
 #include "CPUSetsDlg.h"
 #include <VersionHelpers.h>
 #include <string>

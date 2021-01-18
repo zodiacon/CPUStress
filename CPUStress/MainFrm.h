@@ -68,6 +68,8 @@ public:
 		COMMAND_ID_HANDLER(ID_SYSTEM_CPUSETS, OnSystemCPUSets)
 		COMMAND_ID_HANDLER(ID_PROCESS_CPUSETS, OnProcessCPUSets)
 		COMMAND_ID_HANDLER(ID_OPTIONS_ALWAYSONTOP, OnAlwaysOnTop)
+		COMMAND_ID_HANDLER(ID_HELP_SYSTEMINFORMATION, OnSystemInfo)
+		COMMAND_ID_HANDLER(ID_SYSTEM_INFORMATION, OnSystemInfo)
 		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 		CHAIN_MSG_MAP_ALT_MEMBER(m_view, 2)
@@ -89,6 +91,7 @@ private:
 	LRESULT OnSystemCPUSets(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnProcessCPUSets(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnAlwaysOnTop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnSystemInfo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	// Inherited via IMainFrame
 	BOOL ShowContextMenu(HMENU hMenu, POINT pt) override;

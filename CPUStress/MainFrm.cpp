@@ -2,13 +2,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
+#include "pch.h"
 #include "resource.h"
-
-#include "aboutdlg.h"
+#include "AboutDlg.h"
 #include "View.h"
 #include "MainFrm.h"
 #include "CPUSetsDlg.h"
+#include "SysInfoDlg.h"
 
 CMainFrame::CMainFrame() : m_view(*this, this) {
 }
@@ -208,6 +208,12 @@ LRESULT CMainFrame::OnAlwaysOnTop(WORD, WORD, HWND, BOOL&) {
 	auto onTop = GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_TOPMOST;
 	SetWindowPos(onTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 	UISetCheck(ID_OPTIONS_ALWAYSONTOP, !onTop);
+
+	return 0;
+}
+
+LRESULT CMainFrame::OnSystemInfo(WORD, WORD, HWND, BOOL&) {
+	CSysInfoDlg().DoModal();
 
 	return 0;
 }

@@ -1,19 +1,13 @@
-// aboutdlg.h : interface of the CAboutDlg class
-//
-/////////////////////////////////////////////////////////////////////////////
-
 #pragma once
 
-class CAboutDlg : public CDialogImpl<CAboutDlg> {
+class CSysInfoDlg : public CDialogImpl<CSysInfoDlg> {
 public:
-	enum { IDD = IDD_ABOUTBOX };
+	enum { IDD = IDD_SYSINFO };
 
-	BEGIN_MSG_MAP(CAboutDlg)
+	BEGIN_MSG_MAP(CSysInfoDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
-		NOTIFY_CODE_HANDLER(NM_CLICK, OnClickSyslink)
-		NOTIFY_CODE_HANDLER(NM_RETURN, OnClickSyslink)
 	END_MSG_MAP()
 
 	// Handler prototypes (uncomment arguments if needed):
@@ -21,7 +15,11 @@ public:
 	//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 
+private:
+	void AddItem(PCWSTR name, PCWSTR value);
+
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT OnClickSyslink(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/) const;
+
+	CListViewCtrl m_List;
 };

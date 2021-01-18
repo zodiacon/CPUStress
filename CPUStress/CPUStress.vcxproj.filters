@@ -31,13 +31,16 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="CPUStress.cpp" />
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="AffinityDlg.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="CPUSetsDlg.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="SysInfoDlg.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainFrm.h">
@@ -53,7 +56,6 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="NtDll.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="ThreadManager.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -69,6 +71,10 @@
     <ClInclude Include="CPUSetsDlg.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="SysInfoDlg.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CPUStress.rc">
