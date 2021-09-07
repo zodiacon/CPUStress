@@ -238,9 +238,7 @@ LRESULT CSysInfoDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
     text.Format(L"%u MB", data->NumberOfPhysicalPages >> 8);
     AddItem(L"Physical Memory", text);
 
-    SYSTEM_INFO si;
-    ::GetNativeSystemInfo(&si);
-    text.Format(L"%u", si.dwNumberOfProcessors);
+    text.Format(L"%u", ::GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
     AddItem(L"Logical Processors", text);
 
     WCHAR name[32];

@@ -435,6 +435,13 @@ LRESULT CView::OnNewThread(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
+LRESULT CView::On4NewThread(WORD, WORD, HWND, BOOL&) {
+	for(int i = 0; i < 4; i++)
+		m_ThreadMgr.AddNewThread()->Suspend();
+
+	return 0;
+}
+
 LRESULT CView::OnThreadResume(WORD, WORD, HWND, BOOL&) {
 	for (auto& t : GetSelectedThreads())
 		t->Resume();
