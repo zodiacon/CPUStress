@@ -13,6 +13,9 @@
       <UniqueIdentifier>{b871fa00-3b77-4627-93c9-6c5df5d079f6}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
     </Filter>
+    <Filter Include="UI\Dialogs">
+      <UniqueIdentifier>{0f3a3dec-a4e2-4abe-b990-becd810e21ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Thread.cpp">
@@ -21,9 +24,6 @@
     <ClCompile Include="ThreadManager.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="AboutDlg.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="MainFrm.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -31,25 +31,25 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="CPUStress.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="AboutDlg.cpp">
+      <Filter>UI\Dialogs</Filter>
+    </ClCompile>
     <ClCompile Include="AffinityDlg.cpp">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="CPUSetsDlg.cpp">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="SysInfoDlg.cpp">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainFrm.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="View.h">
-      <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="AboutDlg.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -65,16 +65,19 @@
     <ClInclude Include="IMainFrame.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="AboutDlg.h">
+      <Filter>UI\Dialogs</Filter>
+    </ClInclude>
     <ClInclude Include="AffinityDlg.h">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="CPUSetsDlg.h">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="SysInfoDlg.h">
-      <Filter>UI</Filter>
+      <Filter>UI\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CPUStress.rc">

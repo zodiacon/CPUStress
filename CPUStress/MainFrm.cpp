@@ -218,6 +218,21 @@ LRESULT CMainFrame::OnSystemInfo(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
+LRESULT CMainFrame::OnLaunchCPUStress(WORD, WORD, HWND, BOOL&) {
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si = { sizeof(si) };
+	WCHAR path[MAX_PATH];
+	::GetModuleFileName(nullptr, path, _countof(path));
+	if (::CreateProcess(path, nullptr, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+		::CloseHandle(pi.hProcess);
+		::CloseHandle(pi.hThread);
+	}
+	else {
+		AtlMessageBox(m_hWnd, L"Error launching process.", IDR_MAINFRAME, MB_ICONERROR);
+	}
+	return 0;
+}
+
 BOOL CMainFrame::ShowContextMenu(HMENU hMenu, POINT pt) {
 	m_CmdBar.TrackPopupMenu(hMenu, 0, pt.x, pt.y);
 
