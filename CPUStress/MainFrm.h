@@ -19,8 +19,8 @@ public:
 	CMainFrame();
 
 	bool IsCPUSetsAvailable() const;
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	virtual BOOL OnIdle();
+	BOOL PreTranslateMessage(MSG* pMsg) override;
+	BOOL OnIdle() override;
 
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
