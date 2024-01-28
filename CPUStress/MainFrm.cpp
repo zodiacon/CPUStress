@@ -109,10 +109,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 	CreateSimpleStatusBar();
 	m_StatusBar.SubclassWindow(m_hWndStatusBar);
-	int paneWidths[] = { 140, 250, 350, 450 + Thread::GetCPUCount() * 4, 740 };
-	int panes[] = { 120, 121, 122, 123, 124 };
-	m_StatusBar.SetPanes(panes, _countof(panes));
-	m_StatusBar.SetParts(_countof(panes), paneWidths);
+	int paneWidths[] = { 150, 300, 430, 530, 980 };
+	m_StatusBar.SetParts(_countof(paneWidths), paneWidths);
 
 	m_hWndClient = m_view.Create(m_hWnd, rcDefault, nullptr,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_REPORT,
@@ -233,9 +231,11 @@ LRESULT CMainFrame::OnLaunchCPUStress(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
-BOOL CMainFrame::ShowContextMenu(HMENU hMenu, POINT pt) {
-	m_CmdBar.TrackPopupMenu(hMenu, 0, pt.x, pt.y);
+bool CMainFrame::ShowContextMenu(HMENU hMenu, POINT pt) {
+	return m_CmdBar.TrackPopupMenu(hMenu, 0, pt.x, pt.y);
+}
 
-	return 0;
+bool CMainFrame::SetStatusText(int pane, PCWSTR text) {
+	return m_StatusBar.SetText(pane, text);
 }
 

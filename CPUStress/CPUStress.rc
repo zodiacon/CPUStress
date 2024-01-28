@@ -232,7 +232,7 @@ CAPTION "About CPU Stress"
 FONT 9, "Segoe UI", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,68,60,50,14
-    CTEXT           "CPU Stress v3.2.0\n©2019-2023 Pavel Yosifovich",IDC_STATIC,33,10,120,23
+    CTEXT           "CPU Stress v3.3.0\n©2019-2024 Pavel Yosifovich",IDC_STATIC,33,10,120,23
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     CONTROL         "<a>https://github.com/zodiacon/CPUStress</a>",IDC_LINK,
                     "SysLink",WS_TABSTOP,31,36,126,14
@@ -338,8 +338,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,2,0,0
- PRODUCTVERSION 3,2,0,0
+ FILEVERSION 3,3,0,0
+ PRODUCTVERSION 3,3,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -356,12 +356,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Scorpio Software"
             VALUE "FileDescription", "CPUStress Utility"
-            VALUE "FileVersion", "3.2.0.0"
+            VALUE "FileVersion", "3.3.0.0"
             VALUE "InternalName", "CPUStress"
-            VALUE "LegalCopyright", "©2019-2023 Pavel Yosifovich"
+            VALUE "LegalCopyright", "©2019-2024 Pavel Yosifovich"
             VALUE "OriginalFilename", "CPUStress.exe"
             VALUE "ProductName", "CPU Stress"
-            VALUE "ProductVersion", "3.2.0.0"
+            VALUE "ProductVersion", "3.3.0.0"
         END
     END
     BLOCK "VarFileInfo"

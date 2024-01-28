@@ -31,22 +31,19 @@ void CView::Refresh() {
 	UpdateUI();
 	CString text;
 	text.Format(L"User Created Threads: %d", m_ThreadMgr.GetUserThreads().size());
-	m_UI.UISetText(0, text);
+	m_pFrame->SetStatusText(1, text);
 
 	auto count = std::count_if(m_ThreadMgr.GetUserThreads().begin(), m_ThreadMgr.GetUserThreads().end(), [](auto& t) { return !t->IsSuspended(); });
 	text.Format(L"Active Threads: %d", count);
-	m_UI.UISetText(1, text);
+	m_pFrame->SetStatusText(2, text);
 
 	text.Format(L"Total Threads: %d", m_ThreadMgr.GetThreadCount());
-	m_UI.UISetText(2, text);
+	m_pFrame->SetStatusText(3, text);
 	
 	DWORD_PTR affinity, sysAffinity;
 	::GetProcessAffinityMask(::GetCurrentProcess(), &affinity, &sysAffinity);
-	text.Format(L"Process Affinity: 0x%llX", (DWORD64)affinity);
-	m_UI.UISetText(3, text);
-
-	text.Format(L"Process Priority: %s", PriorityClassToString(::GetPriorityClass(::GetCurrentProcess())));
-	m_UI.UISetText(4, text);
+	text.Format(L"Process Affinity: 0x%llX | Priority Class: %s", (DWORD64)affinity, PriorityClassToString(::GetPriorityClass(::GetCurrentProcess())));
+	m_pFrame->SetStatusText(4, text);
 }
 
 BOOL CView::PreTranslateMessage(MSG* pMsg) {
@@ -261,6 +258,7 @@ void CView::UpdateUI() {
 	m_UI.UIEnable(ID_PRIORITY_ABOVENORMAL, threads.size() == 1);
 	m_UI.UIEnable(ID_PRIORITY_HIGHEST, threads.size() == 1);
 	m_UI.UIEnable(ID_PRIORITY_TIMECRITICAL, threads.size() == 1);
+
 }
 
 LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {

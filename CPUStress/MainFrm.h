@@ -60,7 +60,8 @@ private:
 	LRESULT OnLaunchCPUStress(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	// Inherited via IMainFrame
-	BOOL ShowContextMenu(HMENU hMenu, POINT pt) override;
+	bool ShowContextMenu(HMENU hMenu, POINT pt) override;
+	bool SetStatusText(int pane, PCWSTR text) override;
 
 private:
 	CView m_view;
