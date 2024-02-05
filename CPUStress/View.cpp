@@ -567,7 +567,11 @@ LRESULT CView::OnThreadIdealCPU(WORD, WORD, HWND, BOOL&) {
 }
 
 LRESULT CView::OnThreadSelectedCPUset(WORD, WORD, HWND, BOOL&) {
-	auto thread = GetSelectedThreads()[0];
+	auto& selected = GetSelectedThreads();
+	if (selected.size() == 0)
+		return 0;
+
+	auto& thread = selected[0];
 
 	CCPUSetsDlg dlg(CPUSetsType::Thread, thread.get());
 	if (dlg.DoModal() == IDOK) {
