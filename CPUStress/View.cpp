@@ -275,18 +275,18 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		int width;
 		int format = LVCFMT_LEFT;
 	} columns[] = {
-		{ L"Index", 50 },
-		{ L"CPU %", 50, LVCFMT_CENTER },
-		{ L"ID", 100, LVCFMT_CENTER },
-		{ L"Type", 80 },
+		{ L"Index", 40 },
+		{ L"CPU %", 40, LVCFMT_CENTER },
+		{ L"ID", 100, LVCFMT_RIGHT },
+		{ L"Type", 70 },
 		{ L"Activity", 70 },
-		{ L"Base Priority", 120 },
-		{ L"Priority", 50, LVCFMT_CENTER },
-		{ L"Ideal CPU", 70, LVCFMT_CENTER },
-		{ L"Affinity", 10 + 3 * Thread::GetCPUCount(), LVCFMT_RIGHT },
-		{ L"Created", 80 },
-		{ L"CPU Time", 90 },
-		{ L"TEB", 130, LVCFMT_RIGHT },
+		{ L"Base Priority", 100 },
+		{ L"Priority", 40, LVCFMT_CENTER },
+		{ L"Ideal CPU", 50, LVCFMT_CENTER },
+		{ L"Affinity", 10 + 2 * Thread::GetCPUCount(), LVCFMT_RIGHT },
+		{ L"Created", 70 },
+		{ L"CPU Time", 70 },
+		{ L"TEB", 110, LVCFMT_RIGHT },
 		//{ L"Stack Base", 130, LVCFMT_RIGHT },
 		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
 	};
@@ -299,8 +299,19 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 	SetImageList(images.Detach(), LVSIL_SMALL);
 
 	int i = 0;
-	for (auto& c : columns)
+	for (auto& c : columns) {
+		m_BaseColumnWidths.push_back(c.width);
 		InsertColumn(i++, c.text, c.format, c.width);
+	}
+
+	// the base widths were sized for the default UI font; remember its char width as the baseline
+	NONCLIENTMETRICS ncm{ sizeof(ncm) };
+	::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+	CFont uiFont;
+	uiFont.CreateFontIndirect(&ncm.lfMessageFont);
+	m_BaseCharWidth = GetFontCharWidth(uiFont);
+
+	ResizeColumns();
 
 	for (int i = 0; i < 4; i++) {
 		auto t = m_ThreadMgr.AddNewThread();
@@ -313,6 +324,35 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 	SetTimer(1, 1000, nullptr);
 
 	return 0;
+}
+
+LRESULT CView::OnSetFont(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&) {
+	// apply the new font first, then rescale the columns to match it
+	DefWindowProc(uMsg, wParam, lParam);
+	ResizeColumns();
+	return 0;
+}
+
+int CView::GetFontCharWidth(HFONT hFont) const {
+	CClientDC dc(m_hWnd);
+	auto oldFont = dc.SelectFont(hFont ? hFont : (HFONT)::GetStockObject(DEFAULT_GUI_FONT));
+	TEXTMETRIC tm;
+	dc.GetTextMetrics(&tm);
+	dc.SelectFont(oldFont);
+	return tm.tmAveCharWidth;
+}
+
+void CView::ResizeColumns() {
+	if (m_BaseCharWidth <= 0)
+		return;
+	// when no custom font is set, GetFont() is NULL and the control draws with the default UI
+	// font, so fall back to the baseline width -> ratio 1 (columns keep their designed widths)
+	HFONT hFont = GetFont();
+	int curWidth = hFont ? GetFontCharWidth(hFont) : m_BaseCharWidth;
+	// dampen the growth: apply only half the proportional change so larger fonts don't widen columns excessively
+	int effectiveWidth = m_BaseCharWidth + (curWidth - m_BaseCharWidth) / 4;
+	for (size_t i = 0; i < m_BaseColumnWidths.size(); i++)
+		SetColumnWidth((int)i, ::MulDiv(m_BaseColumnWidths[i], effectiveWidth, m_BaseCharWidth));
 }
 
 LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM, BOOL&) {

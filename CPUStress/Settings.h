@@ -22,4 +22,18 @@ struct Settings {
 		::RegSetKeyValue(HKEY_CURRENT_USER, RegPath, L"DarkMode",
 			REG_DWORD, &value, sizeof(value));
 	}
+
+	// Returns the saved list view font, or a zeroed LOGFONT (lfHeight == 0) if none is stored.
+	static LOGFONT Font() {
+		LOGFONT lf{};
+		DWORD size = sizeof(lf);
+		::RegGetValue(HKEY_CURRENT_USER, RegPath, L"Font",
+			RRF_RT_REG_BINARY, nullptr, &lf, &size);
+		return lf;
+	}
+
+	static void Font(const LOGFONT& lf) {
+		::RegSetKeyValue(HKEY_CURRENT_USER, RegPath, L"Font",
+			REG_BINARY, &lf, sizeof(lf));
+	}
 };

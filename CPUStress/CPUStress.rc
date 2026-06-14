@@ -127,6 +127,8 @@ BEGIN
     BEGIN
         MENUITEM "&Always on Top",              ID_OPTIONS_ALWAYSONTOP
         MENUITEM "&Dark Mode",                  ID_OPTIONS_DARKMODE
+        MENUITEM SEPARATOR
+        MENUITEM "&Font...",                    ID_OPTIONS_FONT
     END
     POPUP "&Help"
     BEGIN

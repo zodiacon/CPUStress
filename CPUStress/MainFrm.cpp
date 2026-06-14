@@ -102,6 +102,12 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	UISetCheck(ID_OPTIONS_DARKMODE, dark);
 	SetDarkMode(dark);
 
+	auto lf = Settings::Font();
+	if (lf.lfHeight) {
+		m_Font.CreateFontIndirect(&lf);
+		m_view.SetFont(m_Font);
+	}
+
 	CString text;
 	GetWindowText(text);
 	text.Format(L"%s (PID: %u)", (PCWSTR)text, ::GetCurrentProcessId());
@@ -217,6 +223,35 @@ LRESULT CMainFrame::OnDarkMode(WORD, WORD id, HWND, BOOL&) {
 	Settings::DarkMode(dark);
 	SetDarkMode(dark);
 	UISetCheck(id, dark);
+	return 0;
+}
+
+LRESULT CMainFrame::OnOptionsFont(WORD, WORD, HWND, BOOL&) {
+	LOGFONT lf{};
+	HFONT hFont = m_view.GetFont();
+	if (hFont)
+		CFontHandle(hFont).GetLogFont(lf);
+	else {
+		// no custom font yet: seed the dialog with the default UI font the list view renders with
+		NONCLIENTMETRICS ncm{ sizeof(ncm) };
+		::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+		lf = ncm.lfMessageFont;
+	}
+
+	// suspend the dark mode hook: it interferes with the common font dialog
+	WTLHelper::SuspendHook();
+	CFontDialog dlg(&lf);
+	if (dlg.DoModal() == IDOK) {
+		dlg.GetCurrentFont(&lf);
+		if (m_Font)
+			m_Font.DeleteObject();
+		m_Font.CreateFontIndirect(&lf);
+		m_view.SetFont(m_Font);
+		m_view.RedrawWindow(nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+		Settings::Font(lf);
+	}
+	WTLHelper::ResumeHook();
+
 	return 0;
 }
 

@@ -36,6 +36,7 @@ public:
 	BEGIN_MSG_MAP(CView)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
+		MESSAGE_HANDLER(WM_SETFONT, OnSetFont)
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_GETDISPINFO, OnGetDispInfo)
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnItemChanged)
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_ODSTATECHANGED, OnItemChanged)
@@ -74,8 +75,11 @@ private:
 
 	void Redraw();
 	void UpdateUI();
+	void ResizeColumns();
+	int GetFontCharWidth(HFONT hFont) const;
 
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnSetFont(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnGetDispInfo(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
@@ -106,6 +110,8 @@ private:
 private:
 	ThreadManager m_ThreadMgr;
 	std::vector<std::shared_ptr<Thread>> m_Threads;
+	std::vector<int> m_BaseColumnWidths;	// column widths designed for the default UI font
+	int m_BaseCharWidth{ 0 };				// avg char width of the font those widths were sized for
 	CUpdateUIBase& m_UI;
 	IMainFrame* m_pFrame;
 	bool m_ShowAllThreads : 1;
