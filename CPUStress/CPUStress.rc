@@ -233,7 +233,7 @@ CAPTION "About CPU Stress"
 FONT 9, "Segoe UI", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,68,60,50,14
-    CTEXT           "CPU Stress v3.3.0\n©2019-2024 Pavel Yosifovich",IDC_STATIC,33,10,120,23
+    CTEXT           "CPU Stress v4.0\n©2019-2026 Pavel Yosifovich",IDC_STATIC,33,10,120,23
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     CONTROL         "<a>https://github.com/zodiacon/CPUStress</a>",IDC_LINK,
                     "SysLink",WS_TABSTOP,31,36,126,14
@@ -405,7 +405,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "CPU Stress v3.2"
+    IDR_MAINFRAME           "CPU Stress"
 END
 
 STRINGTABLE
