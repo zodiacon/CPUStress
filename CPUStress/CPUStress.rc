@@ -126,6 +126,7 @@ BEGIN
     POPUP "&Options"
     BEGIN
         MENUITEM "&Always on Top",              ID_OPTIONS_ALWAYSONTOP
+        MENUITEM "&Dark Mode",                  ID_OPTIONS_DARKMODE
     END
     POPUP "&Help"
     BEGIN
@@ -338,8 +339,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,0,0
- PRODUCTVERSION 3,3,0,0
+ FILEVERSION 4,0,0,0
+ PRODUCTVERSION 4,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -356,12 +357,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Scorpio Software"
             VALUE "FileDescription", "CPUStress Utility"
-            VALUE "FileVersion", "3.3.0.0"
+            VALUE "FileVersion", "4.0.0.0"
             VALUE "InternalName", "CPUStress"
-            VALUE "LegalCopyright", "©2019-2024 Pavel Yosifovich"
+            VALUE "LegalCopyright", "©2019-2026 Pavel Yosifovich"
             VALUE "OriginalFilename", "CPUStress.exe"
             VALUE "ProductName", "CPU Stress"
-            VALUE "ProductVersion", "3.3.0.0"
+            VALUE "ProductVersion", "4.0.0.0"
         END
     END
     BLOCK "VarFileInfo"

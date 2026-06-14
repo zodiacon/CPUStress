@@ -21,6 +21,7 @@ public:
 
 	DWORD GetId() const;
 	CTime GetCreateTime() const;
+	int GetCreateTimeMilliseconds() const;
 	CFileTimeSpan GetCPUTime() const;
 	void SetActivityLevel(ActivityLevel level);
 	ActivityLevel GetActivityLevel() const {

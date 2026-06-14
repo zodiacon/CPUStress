@@ -23,6 +23,12 @@ CTime Thread::GetCreateTime() const {
 	return CTime(create);
 }
 
+int Thread::GetCreateTimeMilliseconds() const {
+	FILETIME create, dummy;
+	::GetThreadTimes(_hThread.get(), &create, &dummy, &dummy, &dummy);
+	return (int)(*(ULONGLONG*)&create / 10000 % 1000);
+}
+
 CFileTimeSpan Thread::GetCPUTime() const {
 	FILETIME kernel, user, dummy;
 	::GetThreadTimes(_hThread.get(), &dummy, &dummy, &kernel, &user);

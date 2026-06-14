@@ -9,6 +9,9 @@
 #include "MainFrm.h"
 #include "CPUSetsDlg.h"
 #include "SysInfoDlg.h"
+#include "WTLHelper.h"
+#include "DarkMode/DarkModeSubclass.h"
+#include "Settings.h"
 
 CMainFrame::CMainFrame() : m_view(*this, this) {
 }
@@ -35,17 +38,12 @@ BOOL CMainFrame::OnIdle() {
 }
 
 LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	// create command bar window
-	HWND hWndCmdBar = m_CmdBar.Create(m_hWnd, rcDefault, nullptr, ATL_SIMPLE_CMDBAR_PANE_STYLE);
-	// attach menu
-	m_CmdBar.AttachMenu(GetMenu());
-	// remove old menu
-	SetMenu(nullptr);
-	m_CmdBar.m_bAlphaImages = true;
+	// add icons to the (standard) menu, themed by WTLHelper
+	InitMenu(GetMenu());
 
 	CToolBarCtrl tb;
 	tb.Create(m_hWnd, nullptr, nullptr, ATL_SIMPLE_TOOLBAR_PANE_STYLE, 0, ATL_IDW_TOOLBAR);
-	CImageList tbImages, cbImages;
+	CImageList tbImages;
 	tbImages.Create(32, 32, ILC_COLOR32 | ILC_COLOR, 8, 4);
 
 	struct {
@@ -79,31 +77,9 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		}
 	}
 
-	struct {
-		UINT id, icon;
-	} cmds[] = {
-		{ ID_THREAD_CREATENEWTHREAD, IDI_THREAD_ADD },
-		{ ID_THREAD_SUSPEND, IDI_THREAD_PAUSE },
-		{ ID_THREAD_RESUME, IDI_THREAD_RUN },
-		{ ID_THREAD_KILL, IDI_THREAD_DELETE },
-		{ ID_VIEW_REFRESH, IDI_REFRESH },
-		{ ID_EDIT_COPY, IDI_COPY },
-		{ ID_ACTIVITY_LOW, IDI_ACTIVITY_LOW },
-		{ ID_ACTIVITY_MEDIUM, IDI_ACTIVITY_MEDIUM },
-		{ ID_ACTIVITY_BUSY, IDI_ACTIVITY_BUSY },
-		{ ID_ACTIVITY_MAXIMUM, IDI_ACTIVITY_MAX },
-		{ ID_VIEW_SHOWALLTHREADS, IDI_THREADS },
-		{ ID_EDIT_SELECT_ALL, IDI_SELECTALL },
-		{ ID_EDIT_SELECTNONE, IDI_SELECT_NONE },
-		{ ID_EDIT_INVERTSELECTION, IDI_SELECT_INVERT },
-	};
-	for (auto& cmd : cmds)
-		m_CmdBar.AddIcon(AtlLoadIcon(cmd.icon), cmd.id);
-
 	HWND hWndToolBar = tb.Detach();
 
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
-	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, nullptr, TRUE);
 	CReBarCtrl(m_hWndToolBar).LockBands(TRUE);
 
@@ -116,10 +92,15 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_REPORT,
 		WS_EX_CLIENTEDGE);
 
+	UIAddMenu(GetMenu());
 	UIAddToolBar(hWndToolBar);
 	UIAddStatusBar(m_hWndStatusBar);
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
+
+	bool dark = Settings::DarkMode();
+	UISetCheck(ID_OPTIONS_DARKMODE, dark);
+	SetDarkMode(dark);
 
 	CString text;
 	GetWindowText(text);
@@ -157,7 +138,7 @@ LRESULT CMainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);	// toolbar is 2nd added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST);	// toolbar is the only band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
@@ -231,8 +212,59 @@ LRESULT CMainFrame::OnLaunchCPUStress(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
+LRESULT CMainFrame::OnDarkMode(WORD, WORD id, HWND, BOOL&) {
+	bool dark = !WTLHelper::IsDarkMode();
+	Settings::DarkMode(dark);
+	SetDarkMode(dark);
+	UISetCheck(id, dark);
+	return 0;
+}
+
+LRESULT CMainFrame::OnSettingChange(UINT, WPARAM, LPARAM lParam, BOOL& bHandled) {
+	// let the dark mode library react to system theme changes
+	DarkMode::handleSettingChange(lParam);
+	bHandled = FALSE;
+	return 0;
+}
+
+void CMainFrame::SetDarkMode(bool dark) {
+	WTLHelper::SwitchToMode(dark ? DarkModeKind::Dark : DarkModeKind::Light, m_hWnd);
+
+	m_view.SetBkColor(::GetSysColor(COLOR_WINDOW));
+	// regenerate menu icon bitmaps so their background matches the new theme
+	InitMenu(GetMenu());
+	DrawMenuBar();
+
+	::EnumThreadWindows(::GetCurrentThreadId(), [](auto h, auto) {
+		::RedrawWindow(h, nullptr, nullptr,
+			RDW_ERASENOW | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		return TRUE;
+		}, 0);
+}
+
+void CMainFrame::InitMenu(HMENU hMenu) {
+	MenuItemData cmds[] = {
+		{ ID_THREAD_CREATENEWTHREAD, IDI_THREAD_ADD },
+		{ ID_THREAD_SUSPEND, IDI_THREAD_PAUSE },
+		{ ID_THREAD_RESUME, IDI_THREAD_RUN },
+		{ ID_THREAD_KILL, IDI_THREAD_DELETE },
+		{ ID_VIEW_REFRESH, IDI_REFRESH },
+		{ ID_EDIT_COPY, IDI_COPY },
+		{ ID_ACTIVITY_LOW, IDI_ACTIVITY_LOW },
+		{ ID_ACTIVITY_MEDIUM, IDI_ACTIVITY_MEDIUM },
+		{ ID_ACTIVITY_BUSY, IDI_ACTIVITY_BUSY },
+		{ ID_ACTIVITY_MAXIMUM, IDI_ACTIVITY_MAX },
+		{ ID_VIEW_SHOWALLTHREADS, IDI_THREADS },
+		{ ID_EDIT_SELECT_ALL, IDI_SELECTALL },
+		{ ID_EDIT_SELECTNONE, IDI_SELECT_NONE },
+		{ ID_EDIT_INVERTSELECTION, IDI_SELECT_INVERT },
+	};
+	WTLHelper::InitMenu(hMenu, cmds, _countof(cmds));
+}
+
 bool CMainFrame::ShowContextMenu(HMENU hMenu, POINT pt) {
-	return m_CmdBar.TrackPopupMenu(hMenu, 0, pt.x, pt.y);
+	InitMenu(hMenu);
+	return ::TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, m_hWnd, nullptr);
 }
 
 bool CMainFrame::SetStatusText(int pane, PCWSTR text) {

@@ -97,7 +97,9 @@ DWORD CView::OnSubItemPrePaint(int, LPNMCUSTOMDRAW cd) {
 	int index = (int)cd->dwItemSpec;
 	auto& t = GetItem(index);
 	auto col = lvcd->iSubItem;
-	lvcd->clrTextBk = lvcd->clrText = CLR_INVALID;
+	// default to the control's configured colors so text follows the current (light/dark) theme
+	lvcd->clrTextBk = GetTextBkColor();
+	lvcd->clrText = GetTextColor();
 	if (!t.IsUserCreated()) {
 		lvcd->clrText = RGB(128, 128, 128);
 		return CDRF_SKIPPOSTPAINT;
@@ -199,7 +201,7 @@ PCWSTR CView::ThreadPriorityToString(int priority) {
 std::pair<COLORREF, COLORREF> CView::ActivityLevelToColor(ActivityLevel level) {
 	switch (level) {
 		case ActivityLevel::Low: return { RGB(192, 192, 0), RGB(0, 0, 0) };
-		case ActivityLevel::Medium: return { RGB(128, 128, 0), RGB(0, 0, 0) };
+		case ActivityLevel::Medium: return { RGB(128, 128, 0), RGB(255, 255, 255) };
 		case ActivityLevel::Busy: return { RGB(192, 0, 0), RGB(255, 255, 255) };
 		case ActivityLevel::Maximum: return { RGB(128, 0, 0), RGB(255, 255, 255) };
 	}
@@ -281,10 +283,10 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		{ L"Base Priority", 120 },
 		{ L"Priority", 50, LVCFMT_CENTER },
 		{ L"Ideal CPU", 70, LVCFMT_CENTER },
-		{ L"Affinity", 10 + 4 * Thread::GetCPUCount(), LVCFMT_RIGHT },
+		{ L"Affinity", 10 + 3 * Thread::GetCPUCount(), LVCFMT_RIGHT },
 		{ L"Created", 80 },
 		{ L"CPU Time", 90 },
-		//{ L"TEB", 130, LVCFMT_RIGHT },
+		{ L"TEB", 130, LVCFMT_RIGHT },
 		//{ L"Stack Base", 130, LVCFMT_RIGHT },
 		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
 	};
@@ -378,12 +380,21 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				break;
 
 			case 9:	// created
-				::StringCchCopy(item.pszText, item.cchTextMax, data.GetCreateTime().Format(L"%X"));
+			{
+				CString created = data.GetCreateTime().Format(L"%X");
+				created.AppendFormat(L".%03d", data.GetCreateTimeMilliseconds());
+				::StringCchCopy(item.pszText, item.cchTextMax, created);
 				break;
+			}
 
 			case 10:	// CPU time
-				::StringCchCopy(item.pszText, item.cchTextMax, CTimeSpan(data.GetCPUTime().GetTimeSpan() / 10000000LL).Format(L"%H:%M:%S"));
+			{
+				auto span = data.GetCPUTime().GetTimeSpan();	// 100-nsec units
+				CString cpuTime = CTimeSpan(span / 10000000LL).Format(L"%H:%M:%S");
+				cpuTime.AppendFormat(L".%03d", (int)(span / 10000 % 1000));
+				::StringCchCopy(item.pszText, item.cchTextMax, cpuTime);
 				break;
+			}
 
 			case 11:	// TEB
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", data.GetTeb());

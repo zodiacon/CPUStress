@@ -6,6 +6,7 @@
 
 #include "View.h"
 #include "IMainFrame.h"
+#include "WTLHelper.h"
 
 class CMainFrame : 
 	public CFrameWindowImpl<CMainFrame>, 
@@ -25,6 +26,8 @@ public:
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
+		COMMAND_ID_HANDLER(ID_OPTIONS_DARKMODE, OnDarkMode)
 		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
 		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR, OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
@@ -58,6 +61,11 @@ private:
 	LRESULT OnAlwaysOnTop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnSystemInfo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnLaunchCPUStress(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnDarkMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+	void SetDarkMode(bool dark);
+	void InitMenu(HMENU hMenu);
 
 	// Inherited via IMainFrame
 	bool ShowContextMenu(HMENU hMenu, POINT pt) override;
@@ -65,6 +73,5 @@ private:
 
 private:
 	CView m_view;
-	CCommandBarCtrl m_CmdBar;
 	CMultiPaneStatusBarCtrl m_StatusBar;
 };

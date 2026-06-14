@@ -6,6 +6,8 @@
 #include "resource.h"
 
 #include "MainFrm.h"
+#include "WTLHelper.h"
+#include "Settings.h"
 
 CAppModule _Module;
 
@@ -36,6 +38,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 	hRes = _Module.Init(nullptr, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
+
+	// install the dark mode hook before any window is created
+	WTLHelper::InitDarkMode(Settings::DarkMode() ? DarkModeKind::Dark : DarkModeKind::Light);
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);
 
