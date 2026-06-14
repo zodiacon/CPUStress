@@ -568,7 +568,7 @@ LRESULT CView::OnThreadIdealCPU(WORD, WORD, HWND, BOOL&) {
 
 LRESULT CView::OnThreadSelectedCPUset(WORD, WORD, HWND, BOOL&) {
 	auto& selected = GetSelectedThreads();
-	if (selected.size() == 0)
+	if (selected.empty())
 		return 0;
 
 	auto& thread = selected[0];

@@ -85,9 +85,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\toolbar.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\CPUStress.ico">
       <Filter>Resource Files</Filter>
     </Image>
