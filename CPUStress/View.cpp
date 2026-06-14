@@ -321,7 +321,7 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 
 	Refresh();
 
-	SetTimer(1, 1000, nullptr);
+	SetTimer(1, 1000);
 
 	return 0;
 }

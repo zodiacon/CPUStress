@@ -9,6 +9,10 @@
 #include "WTLHelper.h"
 #include "Settings.h"
 
+// fixDarkScrollBar() is declared behind _DARKMODELIB_USE_SCROLLBAR_FIX in the library headers
+// (which this TU doesn't define), so declare it here to route scroll bars through the dark theme.
+namespace dmlib_hook { void fixDarkScrollBar(); }
+
 CAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = nullptr, int nCmdShow = SW_SHOWDEFAULT) {
@@ -41,6 +45,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 	// install the dark mode hook before any window is created
 	WTLHelper::InitDarkMode(Settings::DarkMode() ? DarkModeKind::Dark : DarkModeKind::Light);
+
+	// route comctl32 scroll bars (e.g. the list view's) through the dark "Explorer::ScrollBar" theme.
+	// one-time, process-global IAT patch: must run after InitDarkMode (which loads the original
+	// OpenNcThemeData) and before any window is created.
+	dmlib_hook::fixDarkScrollBar();
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);
 
