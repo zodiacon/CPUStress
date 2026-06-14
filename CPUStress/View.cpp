@@ -275,18 +275,18 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		int width;
 		int format = LVCFMT_LEFT;
 	} columns[] = {
-		{ L"Index", 40 },
-		{ L"CPU %", 40, LVCFMT_CENTER },
+		{ L"#", 40 },
+		{ L"CPU %", 50, LVCFMT_CENTER },
 		{ L"ID", 100, LVCFMT_RIGHT },
-		{ L"Type", 70 },
+		{ L"Type", 85 },
 		{ L"Activity", 70 },
-		{ L"Base Priority", 100 },
-		{ L"Priority", 40, LVCFMT_CENTER },
-		{ L"Ideal CPU", 50, LVCFMT_CENTER },
+		{ L"Base Priority", 105 },
+		{ L"Priority", 45, LVCFMT_CENTER },
+		{ L"Ideal CPU", 55, LVCFMT_CENTER },
 		{ L"Affinity", 10 + 2 * Thread::GetCPUCount(), LVCFMT_RIGHT },
-		{ L"Created", 70 },
-		{ L"CPU Time", 70 },
-		{ L"TEB", 110, LVCFMT_RIGHT },
+		{ L"Created", 80 },
+		{ L"CPU Time", 80 },
+		{ L"TEB", 130, LVCFMT_RIGHT },
 		//{ L"Stack Base", 130, LVCFMT_RIGHT },
 		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
 	};
@@ -350,7 +350,7 @@ void CView::ResizeColumns() {
 	HFONT hFont = GetFont();
 	int curWidth = hFont ? GetFontCharWidth(hFont) : m_BaseCharWidth;
 	// dampen the growth: apply only half the proportional change so larger fonts don't widen columns excessively
-	int effectiveWidth = m_BaseCharWidth + (curWidth - m_BaseCharWidth) / 4;
+	int effectiveWidth = m_BaseCharWidth + (curWidth - m_BaseCharWidth) / 2;
 	for (size_t i = 0; i < m_BaseColumnWidths.size(); i++)
 		SetColumnWidth((int)i, ::MulDiv(m_BaseColumnWidths[i], effectiveWidth, m_BaseCharWidth));
 }
@@ -412,7 +412,7 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				break;
 
 			case 7:	// ideal CPU
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"%d", data.GetIdealCPU());
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"%02d", data.GetIdealCPU());
 				break;
 
 			case 8:	// affinity

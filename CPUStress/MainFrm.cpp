@@ -239,7 +239,7 @@ LRESULT CMainFrame::OnOptionsFont(WORD, WORD, HWND, BOOL&) {
 	}
 
 	// suspend the dark mode hook: it interferes with the common font dialog
-	WTLHelper::SuspendHook();
+//	WTLHelper::SuspendHook();
 	CFontDialog dlg(&lf);
 	if (dlg.DoModal() == IDOK) {
 		dlg.GetCurrentFont(&lf);
@@ -250,7 +250,7 @@ LRESULT CMainFrame::OnOptionsFont(WORD, WORD, HWND, BOOL&) {
 		m_view.RedrawWindow(nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_UPDATENOW);
 		Settings::Font(lf);
 	}
-	WTLHelper::ResumeHook();
+	//WTLHelper::ResumeHook();
 
 	return 0;
 }
