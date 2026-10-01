@@ -350,7 +350,7 @@ void CView::ResizeColumns() {
 	HFONT hFont = GetFont();
 	int curWidth = hFont ? GetFontCharWidth(hFont) : m_BaseCharWidth;
 	// dampen the growth: apply only half the proportional change so larger fonts don't widen columns excessively
-	int effectiveWidth = m_BaseCharWidth + (curWidth - m_BaseCharWidth) / 2;
+	int effectiveWidth = m_BaseCharWidth + (curWidth - m_BaseCharWidth) * 2 / 3;
 	for (size_t i = 0; i < m_BaseColumnWidths.size(); i++)
 		SetColumnWidth((int)i, ::MulDiv(m_BaseColumnWidths[i], effectiveWidth, m_BaseCharWidth));
 }

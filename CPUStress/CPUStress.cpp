@@ -44,7 +44,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	ATLASSERT(SUCCEEDED(hRes));
 
 	// install the dark mode hook before any window is created
-	WTLHelper::InitDarkMode(Settings::DarkMode() ? DarkModeKind::Dark : DarkModeKind::Light);
+	WTLHelper::InitDarkMode(Settings::DarkMode() ? DarkModeKind::Dark : DarkModeKind::Classic);
 
 	// route comctl32 scroll bars (e.g. the list view's) through the dark "Explorer::ScrollBar" theme.
 	// one-time, process-global IAT patch: must run after InitDarkMode (which loads the original

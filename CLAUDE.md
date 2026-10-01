@@ -30,6 +30,8 @@ The app is single-process: the worker threads it stresses run *inside* CPUStress
 - **Dialogs** — `AffinityDlg`, `CPUSetsDlg`, `SysInfoDlg`, `AboutDlg`: standalone WTL dialogs for the corresponding features.
 - **`VirtualListView.h`** — a reusable WTL mixin (`CVirtualListView<T>`) providing sorting (`SortInfo`/`DoSort`) and virtual-list plumbing; `CView` derives from it. Similar reusable WTL helpers come from the `WTLHelper` submodule.
 
+- **Settings & dark mode** — `Settings.h` persists `DarkMode` and `Font` (LOGFONT) under HKCU via `RegGetValue`/`RegSetKeyValue`; with no stored value, dark mode follows the system theme (`WTLHelper::IsSystemInDarkMode`). `CPUStress.cpp` calls `WTLHelper::InitDarkMode` at startup, then `dmlib_hook::fixDarkScrollBar()` (a process-global IAT patch) — it must run after `InitDarkMode` and before any window is created. `CMainFrame::SetDarkMode` / `OnOptionsFont` apply runtime changes. Dark-mode plumbing lives in the `WTLHelper` submodule.
+
 ## Conventions
 
 - WTL/ATL message maps drive all event handling. New UI actions = a resource ID in `resource.h` / `CPUStress.rc`, plus a `COMMAND_ID_HANDLER` (or range handler) in the relevant `BEGIN_MSG_MAP`/`ALT_MSG_MAP` and its `On...` method.

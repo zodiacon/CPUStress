@@ -263,7 +263,7 @@ LRESULT CMainFrame::OnSettingChange(UINT, WPARAM, LPARAM lParam, BOOL& bHandled)
 }
 
 void CMainFrame::SetDarkMode(bool dark) {
-	WTLHelper::SwitchToMode(dark ? DarkModeKind::Dark : DarkModeKind::Light, m_hWnd);
+	WTLHelper::SwitchToMode(dark ? DarkModeKind::Dark : DarkModeKind::Classic, m_hWnd);
 
 	m_view.SetBkColor(::GetSysColor(COLOR_WINDOW));
 	// regenerate menu icon bitmaps so their background matches the new theme
