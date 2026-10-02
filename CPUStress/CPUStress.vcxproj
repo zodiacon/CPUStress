@@ -352,6 +352,8 @@
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
     <ClCompile Include="CPUGraphView.cpp" />
+    <ClCompile Include="CpuTopology.cpp" />
+    <ClCompile Include="Telemetry.cpp" />
     <ClCompile Include="View.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -367,6 +369,8 @@
     <ClInclude Include="Thread.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="CPUGraphView.h" />
+    <ClInclude Include="CpuTopology.h" />
+    <ClInclude Include="Telemetry.h" />
     <ClInclude Include="View.h" />
   </ItemGroup>
   <ItemGroup>

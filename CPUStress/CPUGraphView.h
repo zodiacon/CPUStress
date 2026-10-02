@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <deque>
+#include "Telemetry.h"
 
 class CCPUGraphView : public CWindowImpl<CCPUGraphView> {
 public:
@@ -36,8 +37,11 @@ private:
 	}
 
 	bool Sample();
+	CString TelemetrySummary() const;
 	void DrawCell(CDCHandle dc, const CRect& rc, int cpu, bool dark);
 
+	Telemetry m_Telemetry;
+	TelemetrySample m_Readings;					// latest hardware readings; empty until the second sample
 	std::vector<CpuTimes> m_Last;
 	std::vector<std::deque<int>> m_History;		// per CPU, percent 0-100, oldest first
 };

@@ -128,15 +128,12 @@ int Thread::GetPriority() const {
 }
 
  bool Thread::GetCpuSet(std::vector<ULONG>& sets ) const {
-	ULONG set[64];
-	ULONG count;
-	if (::GetThreadSelectedCpuSets(_hThread.get(), set, _countof(set), &count)) {
-		sets.resize(count);
-		if (count > 0)
-			::memcpy(sets.data(), set, count * sizeof(ULONG));
+	ULONG count = 0;
+	::GetThreadSelectedCpuSets(_hThread.get(), nullptr, 0, &count);		// fails, but reports the size needed
+	sets.resize(count);
+	if (count == 0)
 		return true;
-	}
-	return false;
+	return ::GetThreadSelectedCpuSets(_hThread.get(), sets.data(), count, &count) != FALSE;
 }
 
 void Thread::SetBasePriority(int priority) {

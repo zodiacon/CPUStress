@@ -131,6 +131,12 @@ BEGIN
         MENUITEM "Affinity...",                 ID_THREAD_AFFINITY
         MENUITEM "&Ideal CPU...",               ID_THREAD_IDEALCPU
         MENUITEM "Selected CPU Sets...",        ID_THREAD_SELECTEDCPUSETS
+        POPUP "&Run On"
+        BEGIN
+            MENUITEM "&Any Core",                   ID_RUNON_ANY
+            MENUITEM "&P-cores Only",               ID_RUNON_PCORES
+            MENUITEM "&E-cores Only",               ID_RUNON_ECORES
+        END
     END
     POPUP "&Options"
     BEGIN
@@ -183,6 +189,12 @@ BEGIN
         MENUITEM "Affinity...",                 ID_THREAD_AFFINITY
         MENUITEM "&Ideal CPU...",               ID_THREAD_IDEALCPU
         MENUITEM "Selected CPU Sets...",        ID_THREAD_SELECTEDCPUSETS
+        POPUP "&Run On"
+        BEGIN
+            MENUITEM "&Any Core",                   ID_RUNON_ANY
+            MENUITEM "&P-cores Only",               ID_RUNON_PCORES
+            MENUITEM "&E-cores Only",               ID_RUNON_ECORES
+        END
     END
     POPUP "process"
     BEGIN
@@ -467,6 +479,12 @@ BEGIN
     ID_WORKLOAD_FLOAT       "Floating point loop\nFloat"
     ID_WORKLOAD_AVX2        "AVX2/FMA vector loop (high power draw)\nAVX2"
     ID_WORKLOAD_MEMORY      "Random access over a large buffer\nMemory"
+    ID_RUNON_ANY            "Let the thread run on any CPU
+Any Core"
+    ID_RUNON_PCORES         "Restrict the thread to performance cores (CPU set)
+P-cores"
+    ID_RUNON_ECORES         "Restrict the thread to efficiency cores (CPU set)
+E-cores"
     ID_WORKLOAD_MENU        "Choose the workload type for the selected threads\nWorkload"
     ID_VIEW_CPUGRAPHS       "Show or hide the per-CPU usage graphs \nCPU Graphs"
 END

@@ -26,7 +26,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = nullptr, int nCmdShow = SW_SHOWDEFAULT) {
 		return 0;
 	}
 
-	wndMain.ShowWindow(nCmdShow);
+	wndMain.ShowWindow(wndMain.GetStartupShowCmd(nCmdShow));
 
 	int nRet = theLoop.Run();
 

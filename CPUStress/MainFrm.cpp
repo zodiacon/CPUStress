@@ -32,6 +32,12 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
 	return m_view.PreTranslateMessage(pMsg);
 }
 
+int CMainFrame::GetStartupShowCmd(int nCmdShow) const {
+	if (m_StartMaximized && (nCmdShow == SW_SHOWDEFAULT || nCmdShow == SW_SHOWNORMAL || nCmdShow == SW_SHOW))
+		return SW_SHOWMAXIMIZED;
+	return nCmdShow;
+}
+
 BOOL CMainFrame::OnIdle() {
 	UIUpdateToolBar();
 	UIUpdateStatusBar();
@@ -127,10 +133,26 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
-	SetWindowPos(nullptr, 0, 0, 890, 430, SWP_NOMOVE | SWP_NOREPOSITION);
+	// restore the last window position and size, if it is still on a monitor
+	Settings::WindowState state;
+	if (Settings::LoadWindow(state) && state.Rect.right - state.Rect.left > 100 && state.Rect.bottom - state.Rect.top > 100 &&
+		::MonitorFromRect(&state.Rect, MONITOR_DEFAULTTONULL)) {
+		// the saved rectangle is in work area coordinates (it comes from WINDOWPLACEMENT), so apply it the same way;
+		// stays hidden, the startup show command makes it visible (maximized or not)
+		WINDOWPLACEMENT wp{ sizeof(wp) };
+		wp.showCmd = SW_HIDE;
+		wp.rcNormalPosition = state.Rect;
+		SetWindowPlacement(&wp);
+		m_StartMaximized = state.Maximized != 0;
+	}
+	else
+		SetWindowPos(nullptr, 0, 0, 890, 430, SWP_NOMOVE | SWP_NOREPOSITION);
 
 	// needs a laid out client area to compute the position
-	m_splitter.SetSplitterPosPct(65);
+	m_splitter.SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);	// keeps the proportion when the window is resized or maximized
+	CRect rcSplitter;
+	m_splitter.GetClientRect(&rcSplitter);
+	m_splitter.SetSplitterPos((rcSplitter.Height() * Settings::SplitterRatio() + 500) / 1000);
 	bool graphs = Settings::CPUGraphs();
 	UISetCheck(ID_VIEW_CPUGRAPHS, graphs);
 	if (!graphs)
@@ -140,6 +162,19 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 }
 
 LRESULT CMainFrame::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+	// the splitter position survives while the graphs are hidden, so it is saved either way
+	CRect rcSplitter;
+	m_splitter.GetClientRect(&rcSplitter);
+	if (rcSplitter.Height() > 0 && m_splitter.GetSplitterPos() > 0)
+		Settings::SplitterRatio((m_splitter.GetSplitterPos() * 1000 + rcSplitter.Height() / 2) / rcSplitter.Height());
+
+	// remember the window size and position (the restored one, even if currently maximized or minimized)
+	WINDOWPLACEMENT wp{ sizeof(wp) };
+	if (GetWindowPlacement(&wp)) {
+		Settings::WindowState state{ wp.rcNormalPosition, wp.showCmd == SW_SHOWMAXIMIZED || (wp.flags & WPF_RESTORETOMAXIMIZED) ? 1u : 0u };
+		Settings::SaveWindow(state);
+	}
+
 	// unregister message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	ATLASSERT(pLoop != nullptr);

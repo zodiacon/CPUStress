@@ -24,6 +24,8 @@ public:
 	bool IsCPUSetsAvailable() const;
 	BOOL PreTranslateMessage(MSG* pMsg) override;
 	BOOL OnIdle() override;
+	// the show command to use at startup: maximized if the window was maximized when last closed
+	int GetStartupShowCmd(int nCmdShow) const;
 
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -80,6 +82,7 @@ private:
 	bool SetStatusText(int pane, PCWSTR text) override;
 
 private:
+	bool m_StartMaximized{ false };
 	CHorSplitterWindow m_splitter;	// list view on top, CPU graphs below
 	CView m_view;
 	CCPUGraphView m_graph;

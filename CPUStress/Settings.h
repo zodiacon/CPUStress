@@ -23,6 +23,37 @@ struct Settings {
 			REG_DWORD, &value, sizeof(value));
 	}
 
+	// restored (not minimized) window position and size, and whether it was maximized
+	struct WindowState {
+		RECT Rect;
+		DWORD Maximized;
+	};
+
+	static bool LoadWindow(WindowState& state) {
+		DWORD size = sizeof(state);
+		return ::RegGetValue(HKEY_CURRENT_USER, RegPath, L"Window",
+			RRF_RT_REG_BINARY, nullptr, &state, &size) == ERROR_SUCCESS && size == sizeof(state);
+	}
+
+	static void SaveWindow(const WindowState& state) {
+		::RegSetKeyValue(HKEY_CURRENT_USER, RegPath, L"Window",
+			REG_BINARY, &state, sizeof(state));
+	}
+
+	// splitter position between the thread list and the CPU graphs, as a fraction (in 1/1000) of the height
+	static int SplitterRatio() {
+		DWORD value = 650, size = sizeof(value);
+		::RegGetValue(HKEY_CURRENT_USER, RegPath, L"SplitterRatio",
+			RRF_RT_REG_DWORD, nullptr, &value, &size);
+		return (std::min)((std::max)((int)value, 100), 900);
+	}
+
+	static void SplitterRatio(int ratio) {
+		DWORD value = ratio;
+		::RegSetKeyValue(HKEY_CURRENT_USER, RegPath, L"SplitterRatio",
+			REG_DWORD, &value, sizeof(value));
+	}
+
 	static bool CPUGraphs() {
 		DWORD value = 1, size = sizeof(value);
 		::RegGetValue(HKEY_CURRENT_USER, RegPath, L"CPUGraphs",

@@ -49,6 +49,7 @@ public:
 		COMMAND_ID_HANDLER(ID_VIEW_REFRESH, OnRefresh)
 		COMMAND_RANGE_HANDLER(ID_ACTIVITY_LOW, ID_ACTIVITY_MAXIMUM, OnThreadActivity)
 		COMMAND_RANGE_HANDLER(ID_WORKLOAD_SPIN, ID_WORKLOAD_MEMORY, OnThreadWorkload)
+		COMMAND_RANGE_HANDLER(ID_RUNON_ANY, ID_RUNON_ECORES, OnRunOn)
 		COMMAND_RANGE_HANDLER(ID_PRIORITY_IDLE, ID_PRIORITY_TIMECRITICAL, OnSetThreadPriority)
 		COMMAND_RANGE_HANDLER(ID_PRIORITYCLASS_IDLE, ID_PRIORITYCLASS_REALTIME, OnSetProcessPriority)
 		COMMAND_ID_HANDLER(ID_THREAD_CREATENEWTHREAD, OnNewThread)
@@ -91,6 +92,7 @@ private:
 	LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadActivity(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadWorkload(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnRunOn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnNewThread(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT On4NewThread(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadResume(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

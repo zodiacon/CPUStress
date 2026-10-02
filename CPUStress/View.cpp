@@ -10,6 +10,7 @@
 #include "AffinityDlg.h"
 #include "CPUSetsDlg.h"
 #include "WTLHelper.h"
+#include "CpuTopology.h"
 
 CView::CView(CUpdateUIBase& ui, IMainFrame* pFrame) : m_UI(ui), m_pFrame(pFrame), m_ShowAllThreads(false) {
 	ui.UISetCheck(ID_VIEW_SHOWALLTHREADS, FALSE);
@@ -311,6 +312,9 @@ void CView::UpdateUI() {
 	m_UI.UIEnable(ID_ACTIVITY_MEDIUM, !threads.empty());
 	m_UI.UIEnable(ID_ACTIVITY_MAXIMUM, !threads.empty());
 	m_UI.UIEnable(ID_WORKLOAD_MENU, !threads.empty());
+	m_UI.UIEnable(ID_RUNON_ANY, !threads.empty());
+	m_UI.UIEnable(ID_RUNON_PCORES, !threads.empty() && CpuTopology::Get().IsHybrid());
+	m_UI.UIEnable(ID_RUNON_ECORES, !threads.empty() && CpuTopology::Get().IsHybrid());
 	for (UINT id = ID_WORKLOAD_SPIN; id <= ID_WORKLOAD_MEMORY; id++)
 		m_UI.UIEnable(id, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_RESUME, !threads.empty());
@@ -481,7 +485,16 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				break;
 
 			case 7:	// ideal CPU
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"%02d", data.GetIdealCPU());
+			{
+				int cpu = data.GetIdealCPU();
+				auto& topology = CpuTopology::Get();
+				auto info = topology.Find(cpu);
+				// the number is group * 64 + processor, so add the type on hybrid systems
+				if (info && topology.IsHybrid())
+					::StringCchPrintf(item.pszText, item.cchTextMax, L"%02d (%s)", cpu, CpuTopology::TypeShortName(info->Type));
+				else
+					::StringCchPrintf(item.pszText, item.cchTextMax, L"%02d", cpu);
+			}
 				break;
 
 			case 8:	// affinity
@@ -556,6 +569,23 @@ LRESULT CView::OnThreadActivity(WORD, WORD id, HWND, BOOL&) {
 
 LRESULT CView::OnThreadWorkload(WORD, WORD id, HWND, BOOL&) {
 	SetThreadWorkload((WorkloadType)(id - ID_WORKLOAD_SPIN));
+	return 0;
+}
+
+LRESULT CView::OnRunOn(WORD, WORD id, HWND, BOOL&) {
+	// restrict by CPU set rather than affinity: CPU sets work across processor groups
+	std::vector<ULONG> ids;
+	if (id != ID_RUNON_ANY) {
+		ids = CpuTopology::Get().CpuSetIdsOf(id == ID_RUNON_PCORES ? CoreType::Performance : CoreType::Efficiency);
+		if (ids.empty()) {
+			AtlMessageBox(m_hWnd, L"This system has no such cores (it is not a hybrid CPU).", IDR_MAINFRAME, MB_ICONWARNING);
+			return 0;
+		}
+	}
+	for (auto& t : GetSelectedThreads())
+		if (!t->SetCPUSet(ids.empty() ? nullptr : ids.data(), (ULONG)ids.size()))
+			AtlMessageBox(m_hWnd, L"Failed to set the thread's CPU set.", IDR_MAINFRAME, MB_ICONERROR);
+	Redraw();
 	return 0;
 }
 

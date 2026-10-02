@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "resource.h"
 #include "SysInfoDlg.h"
+#include "CpuTopology.h"
 
 typedef enum _ALTERNATIVE_ARCHITECTURE_TYPE {
     StandardDesign,
@@ -240,6 +241,16 @@ LRESULT CSysInfoDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
 
     text.Format(L"%u", ::GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
     AddItem(L"Logical Processors", text);
+
+    auto& topology = CpuTopology::Get();
+    text.Format(L"%d", topology.GroupCount());
+    AddItem(L"Processor Groups", text);
+    if (topology.IsHybrid()) {
+        text.Format(L"%d P-cores, %d E-cores (logical)", topology.CountOf(CoreType::Performance), topology.CountOf(CoreType::Efficiency));
+        AddItem(L"Hybrid CPU", text);
+    }
+    else
+        AddItem(L"Hybrid CPU", L"No");
 
     WCHAR name[32];
     DWORD len = _countof(name);

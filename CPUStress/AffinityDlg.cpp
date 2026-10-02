@@ -1,5 +1,11 @@
 #include "pch.h"
 #include "AffinityDlg.h"
+#include <algorithm>
+
+// affinity masks are per processor group (64 bits), so the dialog covers at most 64 CPUs
+static int DialogCpuCount() {
+	return (std::min)(Thread::GetCPUCount(), 64);
+}
 
 CAffinityDlg::CAffinityDlg(bool affinity, Thread* pThread, const CString& title)
 	: m_Affinity(affinity), m_Title(title), m_pThread(pThread) {
@@ -14,7 +20,7 @@ LRESULT CAffinityDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
 
 	CRect rc;
 	GetDlgItem(IDC_DUMMY).GetClientRect(&rc);
-	int cpus = Thread::GetCPUCount();
+	int cpus = DialogCpuCount();
 
 	DWORD_PTR processAffinity, systemAffinity;
 	BOOL validAffinity = FALSE;
@@ -128,20 +134,20 @@ void CAffinityDlg::DisableNonProcessAffinity() {
 
 DWORD_PTR CAffinityDlg::CalcAffinity() {
 	DWORD_PTR affinity = 0;
-	for (int i = 0; i < Thread::GetCPUCount(); i++)
+	for (int i = 0; i < DialogCpuCount(); i++)
 		if (m_Buttons[i].GetCheck() == BST_CHECKED)
 			affinity |= (DWORD_PTR)1 << i;
 	return affinity;
 }
 
 LRESULT CAffinityDlg::OnSelectAll(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	for (int i = 0; i < Thread::GetCPUCount(); i++)
+	for (int i = 0; i < DialogCpuCount(); i++)
 		CheckDlgButton(IDC_FIRST + i, BST_CHECKED);
 	return 0;
 }
 
 LRESULT CAffinityDlg::OnUnselectAll(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	for (int i = 0; i < Thread::GetCPUCount(); i++)
+	for (int i = 0; i < DialogCpuCount(); i++)
 		CheckDlgButton(IDC_FIRST + i, BST_UNCHECKED);
 	return 0;
 }

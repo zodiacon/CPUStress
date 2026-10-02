@@ -3,6 +3,7 @@
 #include "NtDll.h"
 #include "Thread.h"
 #include "WTLHelper.h"
+#include "CpuTopology.h"
 #include <algorithm>
 #include <cmath>
 
@@ -12,6 +13,7 @@ static constexpr int SampleIntervalMs = 1000;
 LRESULT CCPUGraphView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 	int count = Thread::GetCPUCount();
 	m_History.assign(count, {});
+	m_Telemetry.Open();
 	Sample();		// establishes the baseline; the first graph point comes one interval later
 	SetTimer(SampleTimer, SampleIntervalMs);
 	return 0;
@@ -47,7 +49,35 @@ bool CCPUGraphView::Sample() {
 		}
 	}
 	m_Last = std::move(now);
+	m_Telemetry.Collect(m_Readings);		// leaves the readings empty if nothing is available
 	return true;
+}
+
+CString CCPUGraphView::TelemetrySummary() const {
+	CString text;
+	auto add = [&](PCWSTR s) {
+		if (!text.IsEmpty())
+			text += L"   |   ";
+		text += s;
+	};
+	CString part;
+	if (m_Readings.AverageMHz > 0) {
+		part.Format(L"Freq avg %.2f GHz, max %.2f GHz", m_Readings.AverageMHz / 1000, m_Readings.MaxMHz / 1000);
+		add(part);
+	}
+	if (m_Readings.TemperatureC > 0) {
+		part.Format(L"Temp %.0f °C", m_Readings.TemperatureC);
+		add(part);
+	}
+	if (m_Readings.PowerW >= 0) {
+		part.Format(L"Package power %.1f W", m_Readings.PowerW);
+		add(part);
+	}
+	if (m_Readings.PerformanceLimit >= 0 && m_Readings.PerformanceLimit < 99.5) {
+		part.Format(L"Performance limited to %.0f%%", m_Readings.PerformanceLimit);
+		add(part);
+	}
+	return text.IsEmpty() ? CString(L"Hardware telemetry not available on this system") : text;
 }
 
 LRESULT CCPUGraphView::OnTimer(UINT, WPARAM id, LPARAM, BOOL&) {
@@ -88,8 +118,11 @@ void CCPUGraphView::DrawCell(CDCHandle dc, const CRect& rc, int cpu, bool dark) 
 			pts.push_back({ plot.left + (int)std::lround((first + (int)i) * step), plot.bottom - (plot.Height() - 1) * h[i] / 100 });
 		pts.push_back({ pts.back().x, plot.bottom });
 
-		const COLORREF fill = dark ? RGB(26, 78, 40) : RGB(176, 224, 190);
-		const COLORREF line = dark ? RGB(80, 220, 110) : RGB(20, 140, 50);
+		// E-cores are blue, everything else green
+		auto info = CpuTopology::Get().Cpus().size() > (size_t)cpu ? &CpuTopology::Get().Cpus()[cpu] : nullptr;
+		bool efficiency = info && info->Type == CoreType::Efficiency;
+		const COLORREF fill = efficiency ? (dark ? RGB(28, 56, 96) : RGB(176, 202, 236)) : (dark ? RGB(26, 78, 40) : RGB(176, 224, 190));
+		const COLORREF line = efficiency ? (dark ? RGB(90, 160, 255) : RGB(30, 90, 190)) : (dark ? RGB(80, 220, 110) : RGB(20, 140, 50));
 		CBrush brush;
 		brush.CreateSolidBrush(fill);
 		CPen linePen;
@@ -109,7 +142,23 @@ void CCPUGraphView::DrawCell(CDCHandle dc, const CRect& rc, int cpu, bool dark) 
 	dc.SelectPen(oldPen);
 
 	CString label;
-	label.Format(L"CPU %d  %d%%", cpu, h.empty() ? 0 : h.back());
+	auto& topology = CpuTopology::Get();
+	int usage = h.empty() ? 0 : h.back();
+	if (cpu < (int)topology.Cpus().size()) {
+		// the graph index is the system-wide processor order; show where it lives
+		auto& info = topology.Cpus()[cpu];
+		label.Format(L"CPU %d", info.Index);
+		if (topology.GroupCount() > 1)
+			label.AppendFormat(L" (G%d:%d)", info.Group, info.Number);
+		if (topology.IsHybrid())
+			label.AppendFormat(L" %s", CpuTopology::TypeShortName(info.Type));
+		label.AppendFormat(L"  %d%%", usage);
+		auto mhz = m_Readings.CpuMHz.find(info.Index);
+		if (mhz != m_Readings.CpuMHz.end())
+			label.AppendFormat(L"  %.2f GHz", mhz->second / 1000);
+	}
+	else
+		label.Format(L"CPU %d  %d%%", cpu, usage);
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(text);
 	CRect textRect(rc);
@@ -129,8 +178,19 @@ LRESULT CCPUGraphView::OnPaint(UINT, WPARAM, LPARAM, BOOL&) {
 	dc.FillSolidRect(&rc, dark ? RGB(24, 24, 24) : ::GetSysColor(COLOR_WINDOW));
 	dc.SelectFont(AtlGetDefaultGuiFont());
 
+	// summary strip with the hardware readings, then the graphs below it
+	const COLORREF text = dark ? RGB(220, 220, 220) : RGB(40, 40, 40);
+	dc.SetBkMode(TRANSPARENT);
+	dc.SetTextColor(text);
+	TEXTMETRIC tm;
+	dc.GetTextMetrics(&tm);
+	CRect header(rc.left + 6, rc.top + 2, rc.right - 6, rc.top + tm.tmHeight + 6);
+	auto summary = TelemetrySummary();
+	dc.DrawText(summary, -1, &header, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+	rc.top = header.bottom + 2;
+
 	int count = (int)m_History.size();
-	if (count == 0)
+	if (count == 0 || rc.IsRectEmpty())
 		return 0;
 
 	// pick the column count whose cells come closest to a 3:1 aspect ratio, which suits time-series

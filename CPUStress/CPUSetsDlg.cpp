@@ -3,6 +3,7 @@
 #include <VersionHelpers.h>
 #include <string>
 #include "Thread.h"
+#include "CpuTopology.h"
 
 CCPUSetsDlg::CCPUSetsDlg(CPUSetsType type, Thread* thread) : m_Type(type), m_pThread(thread) {
 }
@@ -23,6 +24,8 @@ LRESULT CCPUSetsDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
 	m_List.InsertColumn(4, L"Node", LVCFMT_CENTER, 60);
 	m_List.InsertColumn(5, L"Flags", LVCFMT_RIGHT, 80);
 	m_List.InsertColumn(6, L"Allocated", LVCFMT_CENTER, 70);
+	m_List.InsertColumn(7, L"Efficiency", LVCFMT_CENTER, 70);
+	m_List.InsertColumn(8, L"Type", LVCFMT_CENTER, 60);
 
 	GetDlgItem(IDOK).ShowWindow(m_Type != CPUSetsType::System ? SW_SHOW : SW_HIDE);
 	GetDlgItem(IDCANCEL).ShowWindow(m_Type != CPUSetsType::System ? SW_SHOW : SW_HIDE);
@@ -56,15 +59,26 @@ LRESULT CCPUSetsDlg::OnOK(WORD, WORD wID, HWND, BOOL&) {
 }
 
 void CCPUSetsDlg::FillCPUSets() {
-	SYSTEM_CPU_SET_INFORMATION info[256];
-	ULONG len;
-	if (!::GetSystemCpuSetInformation(info, sizeof(info), &len, ::GetCurrentProcess(), 0)) {
+	// the entries are variable sized and there can be many (hundreds of CPUs)
+	ULONG len = 0;
+	::GetSystemCpuSetInformation(nullptr, 0, &len, ::GetCurrentProcess(), 0);
+	auto buffer = std::make_unique<BYTE[]>(len ? len : 1);
+	if (len == 0 || !::GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buffer.get()), len, &len, ::GetCurrentProcess(), 0)) {
 		AtlMessageBox(*this, L"Failed to get system CPU set", L"CPU Stress", MB_ICONERROR);
 		EndDialog(IDCANCEL);
 		return;
 	}
+	std::vector<PSYSTEM_CPU_SET_INFORMATION> info;
+	for (ULONG offset = 0; offset < len; ) {
+		auto entry = reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buffer.get() + offset);
+		if (entry->Size == 0)
+			break;
+		offset += entry->Size;
+		if (entry->Type == CpuSetInformation)
+			info.push_back(entry);
+	}
 
-	ULONG count = len / sizeof(SYSTEM_CPU_SET_INFORMATION);
+	ULONG count = (ULONG)info.size();
 	auto ids = std::make_unique<ULONG[]>(count);
 	if (m_Type == CPUSetsType::Process) {
 		if (!::GetProcessDefaultCpuSets(::GetCurrentProcess(), ids.get(), count, &len)) {
@@ -87,7 +101,7 @@ void CCPUSetsDlg::FillCPUSets() {
 	CString text;
 	ULONG index = 0;
 	for (ULONG i = 0; i < count; i++) {
-		auto& set = info[i].CpuSet;
+		auto& set = info[i]->CpuSet;
 		text.Format(L"0x%X (%u)", set.Id, set.Id);
 		int n = m_List.InsertItem(i, text);
 		if (m_Type != CPUSetsType::System && index < len && ids[index] == set.Id) {
@@ -102,5 +116,8 @@ void CCPUSetsDlg::FillCPUSets() {
 		text.Format(L"0x%X (%u)", set.AllFlags, set.AllFlags);
 		m_List.SetItemText(n, 5, text);
 		m_List.SetItemText(n, 6, set.AllocatedToTargetProcess ? L"Yes" : L"No");
+		m_List.SetItemText(n, 7, std::to_wstring(set.EfficiencyClass).c_str());
+		if (auto cpu = CpuTopology::Get().Find(set.Group * 64 + set.LogicalProcessorIndex))
+			m_List.SetItemText(n, 8, CpuTopology::TypeShortName(cpu->Type));
 	}
 }
