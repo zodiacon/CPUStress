@@ -63,6 +63,18 @@ namespace NT {
 
 	typedef LONG KPRIORITY;
 
+	constexpr ULONG SystemProcessorPerformanceInformation = 8;
+
+	// per logical CPU; KernelTime includes IdleTime
+	typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
+		LARGE_INTEGER IdleTime;
+		LARGE_INTEGER KernelTime;
+		LARGE_INTEGER UserTime;
+		LARGE_INTEGER DpcTime;
+		LARGE_INTEGER InterruptTime;
+		ULONG InterruptCount;
+	} SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION;
+
 	typedef struct _NT_TIB {
 		PVOID ExceptionList;
 		PVOID StackBase;
@@ -84,6 +96,12 @@ namespace NT {
 	} THREAD_BASIC_INFORMATION, * PTHREAD_BASIC_INFORMATION;
 
 	extern "C" {
+		NTSTATUS NTAPI NtQuerySystemInformation(
+			_In_ ULONG SystemInformationClass,
+			_Out_writes_bytes_opt_(SystemInformationLength) PVOID SystemInformation,
+			_In_ ULONG SystemInformationLength,
+			_Out_opt_ PULONG ReturnLength);
+
 		NTSTATUS NTAPI NtGetNextThread(
 			_In_ HANDLE ProcessHandle,
 			_In_opt_ HANDLE ThreadHandle,

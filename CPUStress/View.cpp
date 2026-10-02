@@ -9,6 +9,7 @@
 #include "Thread.h"
 #include "AffinityDlg.h"
 #include "CPUSetsDlg.h"
+#include "WTLHelper.h"
 
 CView::CView(CUpdateUIBase& ui, IMainFrame* pFrame) : m_UI(ui), m_pFrame(pFrame), m_ShowAllThreads(false) {
 	ui.UISetCheck(ID_VIEW_SHOWALLTHREADS, FALSE);
@@ -65,6 +66,16 @@ void CView::DoSort(const SortInfo* si) {
 		});
 }
 
+void CView::SetThreadWorkload(WorkloadType type) {
+	if (!Thread::IsWorkloadSupported(type)) {
+		AtlMessageBox(m_hWnd, L"This workload is not supported by the CPU.", IDR_MAINFRAME, MB_ICONWARNING);
+		return;
+	}
+	for (auto& t : GetSelectedThreads())
+		t->SetWorkloadType(type);
+	Redraw();
+}
+
 void CView::SetThreadActivity(int activity) {
 	for (auto& t : GetSelectedThreads())
 		t->SetActivityLevel((ActivityLevel)(activity + 1));
@@ -83,6 +94,38 @@ std::vector<std::shared_ptr<Thread>> CView::GetSelectedThreads() const {
 			threads.push_back(t);
 	}
 	return threads;
+}
+
+void CView::DrawHistory(NMLVCUSTOMDRAW* lvcd, int index, Thread& t) {
+	CDCHandle dc(lvcd->nmcd.hdc);
+	CRect rc;
+	GetSubItemRect(index, lvcd->iSubItem, LVIR_BOUNDS, &rc);
+	rc.DeflateRect(0, 1);
+
+	bool selected = (GetItemState(index, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+	dc.FillSolidRect(&rc, selected ? ::GetSysColor(COLOR_HIGHLIGHT) : GetTextBkColor());
+
+	uint8_t samples[Thread::HistorySize];
+	int n = t.GetHistory(samples);
+	if (n < 2 || rc.Width() < 4)
+		return;
+
+	bool dark = WTLHelper::IsDarkMode();
+	CRect plot(rc);
+	plot.DeflateRect(2, 2);
+	double step = (double)plot.Width() / (Thread::HistorySize - 1);
+	int first = Thread::HistorySize - n;		// newest sample sits on the right edge
+
+	std::vector<POINT> pts;
+	pts.reserve(n);
+	for (int i = 0; i < n; i++)
+		pts.push_back({ plot.left + (int)((first + i) * step), plot.bottom - (plot.Height() - 1) * samples[i] / 100 });
+
+	CPen pen;
+	pen.CreatePen(PS_SOLID, 1, selected ? RGB(255, 255, 255) : dark ? RGB(80, 220, 110) : RGB(20, 140, 50));
+	auto old = dc.SelectPen(pen);
+	dc.Polyline(pts.data(), n);
+	dc.SelectPen(old);
 }
 
 DWORD CView::OnPrePaint(int, LPNMCUSTOMDRAW) {
@@ -112,6 +155,10 @@ DWORD CView::OnSubItemPrePaint(int, LPNMCUSTOMDRAW cd) {
 				lvcd->clrText = colors.second;
 			}
 			break;
+
+		case 12:
+			DrawHistory(lvcd, index, t);
+			return CDRF_SKIPDEFAULT;
 	}
 
 	return CDRF_SKIPPOSTPAINT;
@@ -159,18 +206,35 @@ bool CView::CompareItems(Thread& t1, Thread& t2, const SortInfo* si) {
 		case 10: // CPU time
 			return SortNumbers(t1.GetCPUTime().GetTimeSpan(), t2.GetCPUTime().GetTimeSpan(), si->SortAscending);
 
-		case 11:	// TEB
+		case 11:	// workload
+			return SortNumbers(t1.GetWorkloadType(), t2.GetWorkloadType(), si->SortAscending);
+
+		case 12:	// history (sorted by current usage)
+			return SortNumbers(t1.GetCPU(), t2.GetCPU(), si->SortAscending);
+
+		case 13:	// TEB
 			return SortNumbers(t1.GetTeb(), t2.GetTeb(), si->SortAscending);
 
-		case 12:	// stack base, limit
-		case 13:
+		case 14:	// stack base, limit
+		case 15:
 			PVOID start1, end1, start2, end2;
 			t1.GetStackLimits(start1, end1);
 			t2.GetStackLimits(start2, end2);
-			return SortNumbers(si->SortColumn == 12 ? start1 : end1, si->SortColumn == 12 ? start2 : end2, si->SortAscending);
+			return SortNumbers(si->SortColumn == 14 ? start1 : end1, si->SortColumn == 14 ? start2 : end2, si->SortAscending);
 
 	}
 	return false;
+}
+
+PCWSTR CView::WorkloadTypeToString(WorkloadType type) {
+	switch (type) {
+		case WorkloadType::Spin: return L"Spin";
+		case WorkloadType::Integer: return L"Integer";
+		case WorkloadType::Float: return L"Float";
+		case WorkloadType::AVX2: return L"AVX2";
+		case WorkloadType::Memory: return L"Memory";
+	}
+	return L"";
 }
 
 PCWSTR CView::ActivityLevelToString(ActivityLevel level) {
@@ -246,6 +310,9 @@ void CView::UpdateUI() {
 	m_UI.UIEnable(ID_ACTIVITY_LOW, !threads.empty());
 	m_UI.UIEnable(ID_ACTIVITY_MEDIUM, !threads.empty());
 	m_UI.UIEnable(ID_ACTIVITY_MAXIMUM, !threads.empty());
+	m_UI.UIEnable(ID_WORKLOAD_MENU, !threads.empty());
+	for (UINT id = ID_WORKLOAD_SPIN; id <= ID_WORKLOAD_MEMORY; id++)
+		m_UI.UIEnable(id, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_RESUME, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_KILL, !threads.empty());
 	m_UI.UIEnable(ID_THREAD_SUSPEND, !threads.empty());
@@ -275,7 +342,7 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		int width;
 		int format = LVCFMT_LEFT;
 	} columns[] = {
-		{ L"#", 40 },
+		{ L"#", 60 },
 		{ L"CPU %", 50, LVCFMT_CENTER },
 		{ L"ID", 100, LVCFMT_RIGHT },
 		{ L"Type", 85 },
@@ -286,7 +353,9 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL&) {
 		{ L"Affinity", 10 + 2 * Thread::GetCPUCount(), LVCFMT_RIGHT },
 		{ L"Created", 80 },
 		{ L"CPU Time", 80 },
-		{ L"TEB", 130, LVCFMT_RIGHT },
+		{ L"Workload", 70 },
+		{ L"History", 100 },
+		{ L"TEB", 123, LVCFMT_RIGHT },
 		//{ L"Stack Base", 130, LVCFMT_RIGHT },
 		//{ L"Stack Limit", 130, LVCFMT_RIGHT },
 	};
@@ -436,17 +505,25 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL&) {
 				break;
 			}
 
-			case 11:	// TEB
+			case 11: // workload
+				if (data.IsUserCreated())
+					item.pszText = (PWSTR)WorkloadTypeToString(data.GetWorkloadType());
+				break;
+
+			case 12: // history is drawn in custom draw
+				break;
+
+			case 13:	// TEB
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", data.GetTeb());
 				break;
 
-			case 12: // stack base
-			case 13: // stack limit
+			case 14: // stack base
+			case 15: // stack limit
 			{
 				void* start;
 				void* end;
 				data.GetStackLimits(start, end);
-				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 12 ? start : end);
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%p", col == 14 ? start : end);
 				break;
 			}
 		}
@@ -474,6 +551,11 @@ LRESULT CView::OnItemChanged(int, LPNMHDR hdr, BOOL&) {
 LRESULT CView::OnThreadActivity(WORD, WORD id, HWND, BOOL&) {
 	SetThreadActivity(id - ID_ACTIVITY_LOW);
 
+	return 0;
+}
+
+LRESULT CView::OnThreadWorkload(WORD, WORD id, HWND, BOOL&) {
+	SetThreadWorkload((WorkloadType)(id - ID_WORKLOAD_SPIN));
 	return 0;
 }
 

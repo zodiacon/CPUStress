@@ -10,6 +10,7 @@
 #include "CPUSetsDlg.h"
 #include "SysInfoDlg.h"
 #include "WTLHelper.h"
+#include "ToolbarHelper.h"
 #include "DarkMode/DarkModeSubclass.h"
 #include "Settings.h"
 
@@ -50,6 +51,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		UINT id;
 		int image;
 		int style = BTNS_BUTTON;
+		PCWSTR text = nullptr;
 	} buttons[] = {
 		{ ID_THREAD_CREATENEWTHREAD, IDI_THREAD_ADD },
 		{ 0 },
@@ -63,17 +65,20 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		{ ID_ACTIVITY_BUSY, IDI_ACTIVITY_BUSY },
 		{ ID_ACTIVITY_MAXIMUM, IDI_ACTIVITY_MAX },
 		{ 0 },
+		{ ID_WORKLOAD_MENU, IDI_WORKLOAD, BTNS_WHOLEDROPDOWN | BTNS_AUTOSIZE | BTNS_SHOWTEXT, L"Workload" },
+		{ 0 },
 		{ ID_VIEW_SHOWALLTHREADS, IDI_THREADS },
 	};
 
 	tb.SetImageList(tbImages);
+	tb.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);	// text only on buttons that ask for it
 
 	for (auto& b : buttons) {
 		if (b.id == 0)
 			tb.AddSeparator(0);
 		else {
-			int image = tbImages.AddIcon(AtlLoadIcon(b.image));
-			tb.AddButton(b.id, b.style, TBSTATE_ENABLED, image, nullptr, 0);
+			int image = b.image == I_IMAGENONE ? I_IMAGENONE : tbImages.AddIcon(AtlLoadIcon(b.image));
+			tb.AddButton(b.id, b.style, TBSTATE_ENABLED, image, (INT_PTR)b.text, 0);
 		}
 	}
 
@@ -88,9 +93,12 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	int paneWidths[] = { 150, 300, 430, 530, 980 };
 	m_StatusBar.SetParts(_countof(paneWidths), paneWidths);
 
-	m_hWndClient = m_view.Create(m_hWnd, rcDefault, nullptr,
+	m_hWndClient = m_splitter.Create(m_hWnd, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	m_view.Create(m_splitter, rcDefault, nullptr,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_OWNERDATA | LVS_REPORT,
 		WS_EX_CLIENTEDGE);
+	m_graph.Create(m_splitter, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_CLIENTEDGE);
+	m_splitter.SetSplitterPanes(m_view, m_graph);
 
 	UIAddMenu(GetMenu());
 	UIAddToolBar(hWndToolBar);
@@ -121,6 +129,13 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 	SetWindowPos(nullptr, 0, 0, 890, 430, SWP_NOMOVE | SWP_NOREPOSITION);
 
+	// needs a laid out client area to compute the position
+	m_splitter.SetSplitterPosPct(65);
+	bool graphs = Settings::CPUGraphs();
+	UISetCheck(ID_VIEW_CPUGRAPHS, graphs);
+	if (!graphs)
+		m_splitter.SetSinglePaneMode(SPLIT_PANE_TOP);
+
 	return 0;
 }
 
@@ -148,6 +163,14 @@ LRESULT CMainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
+	return 0;
+}
+
+LRESULT CMainFrame::OnViewCPUGraphs(WORD, WORD, HWND, BOOL&) {
+	bool show = m_splitter.GetSinglePaneMode() != SPLIT_PANE_NONE;		// currently hidden -> show
+	m_splitter.SetSinglePaneMode(show ? SPLIT_PANE_NONE : SPLIT_PANE_TOP);
+	UISetCheck(ID_VIEW_CPUGRAPHS, show);
+	Settings::CPUGraphs(show);
 	return 0;
 }
 
@@ -252,6 +275,34 @@ LRESULT CMainFrame::OnOptionsFont(WORD, WORD, HWND, BOOL&) {
 	}
 	//WTLHelper::ResumeHook();
 
+	return 0;
+}
+
+LRESULT CMainFrame::OnToolBarDropDown(int, LPNMHDR hdr, BOOL& handled) {
+	auto tbn = reinterpret_cast<NMTOOLBAR*>(hdr);
+	if (tbn->iItem != ID_WORKLOAD_MENU) {
+		handled = FALSE;
+		return 0;
+	}
+
+	struct {
+		UINT id;
+		PCWSTR text;
+		WorkloadType type;
+	} items[] = {
+		{ ID_WORKLOAD_SPIN, L"&Spin", WorkloadType::Spin },
+		{ ID_WORKLOAD_INTEGER, L"&Integer math", WorkloadType::Integer },
+		{ ID_WORKLOAD_FLOAT, L"&Floating point", WorkloadType::Float },
+		{ ID_WORKLOAD_AVX2, L"&AVX2 / FMA", WorkloadType::AVX2 },
+		{ ID_WORKLOAD_MEMORY, L"&Memory", WorkloadType::Memory },
+	};
+
+	CMenu menu;
+	menu.CreatePopupMenu();
+	for (auto& item : items)
+		menu.AppendMenu(MF_STRING | (Thread::IsWorkloadSupported(item.type) ? 0 : MF_GRAYED), item.id, item.text);
+
+	ShowContextMenu(menu, ToolbarHelper::GetDropdownMenuPoint(tbn->hdr.hwndFrom, ID_WORKLOAD_MENU));
 	return 0;
 }
 

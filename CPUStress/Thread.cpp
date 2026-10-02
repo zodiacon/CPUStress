@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Thread.h"
 #include "NtDll.h"
+#include <immintrin.h>
+#include <cmath>
 
 Thread::Thread(HANDLE hThread, int index) 
 	: _hThread(hThread), _index(index), _userCreated(false), _level(ActivityLevel::None) {
@@ -37,6 +39,27 @@ CFileTimeSpan Thread::GetCPUTime() const {
 
 void Thread::SetActivityLevel(ActivityLevel level) {
 	_level = level;
+}
+
+int Thread::GetHistory(uint8_t* samples) const {
+	auto total = _historyCount.load();
+	int n = min(total, HistorySize);
+	for (int i = 0; i < n; i++)
+		samples[i] = _history[(total - n + i) % HistorySize];
+	return n;
+}
+
+bool Thread::IsWorkloadSupported(WorkloadType type) {
+	if (type == WorkloadType::AVX2)
+		return ::IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE);
+	return true;
+}
+
+bool Thread::SetWorkloadType(WorkloadType type) {
+	if (!IsWorkloadSupported(type))
+		return false;
+	_type = type;
+	return true;
 }
 
 bool Thread::IsSuspended() const {
@@ -159,14 +182,94 @@ void Thread::DoWork() {
 				_cpuConsumption = (int)((kernel + user - _lastCpuTime) / (current - _lastCpuTick)) / GetCPUCount();
 				_lastCpuTick = current;
 				_lastCpuTime = kernel + user;
+				// _cpuConsumption is in 1/100 percent of the whole machine; store percent of a single CPU
+				auto count = _historyCount.load();
+				_history[count % HistorySize] = (uint8_t)min(100, _cpuConsumption * GetCPUCount() / 100);
+				_historyCount = count + 1;
 			}
 		}
 		auto level = _level.load();
-		if (level != ActivityLevel::Maximum) {
+		auto type = _type.load();
+		if (level == ActivityLevel::Maximum) {
+			RunChunk(type);
+		}
+		else {
 			auto time = ::GetTickCount64();
 			while (::GetTickCount64() - time < (unsigned)level * 25)
-				;
+				RunChunk(type);
 			::Sleep(100 - (int)level * 25);
+		}
+	}
+}
+
+// one short slice of work (well under a millisecond) so activity level and workload changes take effect quickly
+void Thread::RunChunk(WorkloadType type) {
+	static volatile uint64_t sink;	// keeps the optimizer from deleting the loops; races between threads are harmless
+
+	switch (type) {
+		case WorkloadType::Integer: {
+			uint64_t a = 88172645463325252ULL, b = 0x9E3779B97F4A7C15ULL, c = 1, d = 7;
+			for (int i = 0; i < 20000; i++) {
+				a = a * 6364136223846793005ULL + 1442695040888963407ULL;
+				b ^= b << 13; b ^= b >> 7; b ^= b << 17;
+				c = _rotl64(c * 0x100000001B3ULL ^ a, 5);
+				d += (c ^ b) * 31;
+			}
+			sink = a ^ b ^ c ^ d;
+			break;
+		}
+
+		case WorkloadType::Float: {
+			double x = 0.5, y = 1.5;
+			for (int i = 0; i < 5000; i++) {
+				x = std::sin(x) * std::cos(y) + 1.0001;
+				y = std::sqrt(x * x + y * 0.001) + 0.5;
+			}
+			sink = (uint64_t)(x * 1000 + y);
+			break;
+		}
+
+		case WorkloadType::AVX2: {
+			// independent FMA chains so the FMA units stay saturated; values stay bounded
+			__m256d acc[8];
+			for (int i = 0; i < 8; i++)
+				acc[i] = _mm256_set1_pd(0.1 * (i + 1));
+			const __m256d mul = _mm256_set1_pd(0.999999), add = _mm256_set1_pd(0.000001);
+			for (int i = 0; i < 20000; i++)
+				for (int j = 0; j < 8; j++)
+					acc[j] = _mm256_fmadd_pd(acc[j], mul, add);
+			double out[4];
+			_mm256_storeu_pd(out, _mm256_add_pd(acc[0], acc[7]));
+			sink = (uint64_t)(out[0] * 1000);
+			break;
+		}
+
+		case WorkloadType::Memory: {
+			// random read-modify-write over a buffer much larger than any cache
+			constexpr size_t Size = 64 << 20;
+			constexpr size_t Count = Size / sizeof(uint64_t);
+			if (!_buffer)
+				_buffer.reset(::VirtualAlloc(nullptr, Size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+			if (!_buffer) {		// out of memory: degrade to a spin
+				RunChunk(WorkloadType::Spin);
+				break;
+			}
+			auto p = static_cast<uint64_t*>(_buffer.get());
+			uint64_t x = sink | 1;
+			for (int i = 0; i < 8000; i++) {
+				x ^= x << 13; x ^= x >> 7; x ^= x << 17;
+				p[x % Count] += x;
+			}
+			sink = x;
+			break;
+		}
+
+		default: {
+			uint64_t n = 0;
+			for (int i = 0; i < 2000; i++)
+				n += sink + i;	// volatile read per iteration: can't be folded to a constant
+			sink = n;
+			break;
 		}
 	}
 }

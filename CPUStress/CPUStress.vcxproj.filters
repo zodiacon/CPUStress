@@ -16,6 +16,9 @@
     <Filter Include="UI\Dialogs">
       <UniqueIdentifier>{0f3a3dec-a4e2-4abe-b990-becd810e21ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Icons">
+      <UniqueIdentifier>{d7a77f17-866e-4cb0-8ec2-a19174c79514}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Thread.cpp">
@@ -44,15 +47,15 @@
     <ClCompile Include="SysInfoDlg.cpp">
       <Filter>UI\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="CPUGraphView.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainFrm.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="View.h">
-      <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="NtDll.h" />
@@ -78,6 +81,12 @@
     <ClInclude Include="SysInfoDlg.h">
       <Filter>UI\Dialogs</Filter>
     </ClInclude>
+    <ClInclude Include="CPUGraphView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CPUStress.rc">
@@ -85,53 +94,56 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\CPUStress.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gear.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gear_add.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gear_delete.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gear_pause.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\gear_run.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\copy.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\refresh.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\gauge_dial_1.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\gauge_dial_2.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\gauge_dial_3.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\gauge_dial_4.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
-    <Image Include="res\threads.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="res\gear.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\gear_add.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\gear_delete.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\gear_pause.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\gear_run.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\refresh.ico">
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\select_all.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\select_invert.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\select_none.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\threads.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\Workflow.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\copy.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\CPUStress.ico">
+      <Filter>Resource Files\Icons</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

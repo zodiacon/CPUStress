@@ -72,6 +72,7 @@ BEGIN
         MENUITEM "&Refresh\tF5",                ID_VIEW_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "Show All Threads",            ID_VIEW_SHOWALLTHREADS
+        MENUITEM "&CPU Graphs",                 ID_VIEW_CPUGRAPHS
     END
     POPUP "&System"
     BEGIN
@@ -108,6 +109,14 @@ BEGIN
             MENUITEM "&Medium (50%)",               ID_ACTIVITY_MEDIUM
             MENUITEM "&Busy (75%)",                 ID_ACTIVITY_BUSY
             MENUITEM "&Maximum (100%)",             ID_ACTIVITY_MAXIMUM
+        END
+        POPUP "&Workload"
+        BEGIN
+            MENUITEM "&Spin",                       ID_WORKLOAD_SPIN
+            MENUITEM "&Integer math",               ID_WORKLOAD_INTEGER
+            MENUITEM "&Floating point",             ID_WORKLOAD_FLOAT
+            MENUITEM "&AVX2 / FMA",                 ID_WORKLOAD_AVX2
+            MENUITEM "&Memory",                     ID_WORKLOAD_MEMORY
         END
         POPUP "&Priority"
         BEGIN
@@ -152,6 +161,14 @@ BEGIN
             MENUITEM "&Medium (50%)",               ID_ACTIVITY_MEDIUM
             MENUITEM "&Busy (75%)",                 ID_ACTIVITY_BUSY
             MENUITEM "&Maximum (100%)",             ID_ACTIVITY_MAXIMUM
+        END
+        POPUP "&Workload"
+        BEGIN
+            MENUITEM "&Spin",                       ID_WORKLOAD_SPIN
+            MENUITEM "&Integer math",               ID_WORKLOAD_INTEGER
+            MENUITEM "&Floating point",             ID_WORKLOAD_FLOAT
+            MENUITEM "&AVX2 / FMA",                 ID_WORKLOAD_AVX2
+            MENUITEM "&Memory",                     ID_WORKLOAD_MEMORY
         END
         POPUP "&Priority"
         BEGIN
@@ -222,6 +239,8 @@ IDI_SELECTALL           ICON                    "res\\select_all.ico"
 IDI_SELECT_INVERT       ICON                    "res\\select_invert.ico"
 
 IDI_SELECT_NONE         ICON                    "res\\select_none.ico"
+
+IDI_WORKLOAD            ICON                    "res\\Workflow.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -439,6 +458,17 @@ BEGIN
     ID_ACTIVITY_MEDIUM      "Medium activity (50%)\nMedium (50%)"
     ID_ACTIVITY_BUSY        "Busy activity (75%)\nBusy (75%)"
     ID_ACTIVITY_MAXIMUM     "Maximum activity (100%)\nMaximum (100%)"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WORKLOAD_SPIN        "Simple busy spin\nSpin"
+    ID_WORKLOAD_INTEGER     "Integer arithmetic loop\nInteger"
+    ID_WORKLOAD_FLOAT       "Floating point loop\nFloat"
+    ID_WORKLOAD_AVX2        "AVX2/FMA vector loop (high power draw)\nAVX2"
+    ID_WORKLOAD_MEMORY      "Random access over a large buffer\nMemory"
+    ID_WORKLOAD_MENU        "Choose the workload type for the selected threads\nWorkload"
+    ID_VIEW_CPUGRAPHS       "Show or hide the per-CPU usage graphs \nCPU Graphs"
 END
 
 STRINGTABLE

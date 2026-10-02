@@ -351,6 +351,7 @@
     <ClCompile Include="SysInfoDlg.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
+    <ClCompile Include="CPUGraphView.cpp" />
     <ClCompile Include="View.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -365,6 +366,7 @@
     <ClInclude Include="SysInfoDlg.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="ThreadManager.h" />
+    <ClInclude Include="CPUGraphView.h" />
     <ClInclude Include="View.h" />
   </ItemGroup>
   <ItemGroup>
@@ -387,6 +389,7 @@
     <Image Include="res\select_invert.ico" />
     <Image Include="res\select_none.ico" />
     <Image Include="res\threads.ico" />
+    <Image Include="res\Workflow.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

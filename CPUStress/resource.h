@@ -24,6 +24,8 @@
 #define IDI_ICON3                       217
 #define IDI_SELECT_NONE                 217
 #define IDD_SYSINFO                     219
+#define IDI_ICON1                       221
+#define IDI_WORKLOAD                    221
 #define IDC_DUMMY                       1000
 #define IDC_CPUSETS                     1000
 #define IDC_SELECTALL                   1001
@@ -74,13 +76,20 @@
 #define ID_PROCESS_LAUNCHANOTHERCPUSTRESS 32817
 #define ID_OPTIONS_DARKMODE             32818
 #define ID_OPTIONS_FONT                 32819
+#define ID_WORKLOAD_SPIN                32820
+#define ID_WORKLOAD_INTEGER             32821
+#define ID_WORKLOAD_FLOAT               32822
+#define ID_WORKLOAD_AVX2                32823
+#define ID_WORKLOAD_MEMORY              32824
+#define ID_WORKLOAD_MENU                32825
+#define ID_VIEW_CPUGRAPHS               32826
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        221
-#define _APS_NEXT_COMMAND_VALUE         32820
+#define _APS_NEXT_RESOURCE_VALUE        222
+#define _APS_NEXT_COMMAND_VALUE         32827
 #define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

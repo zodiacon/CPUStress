@@ -27,6 +27,7 @@ public:
 
 	void DoSort(const SortInfo* si);
 	void SetThreadActivity(int activity);
+	void SetThreadWorkload(WorkloadType type);
 	std::vector<std::shared_ptr<Thread>> GetSelectedThreads() const;
 
 	DWORD OnPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/);
@@ -47,6 +48,7 @@ public:
 	ALT_MSG_MAP(2)
 		COMMAND_ID_HANDLER(ID_VIEW_REFRESH, OnRefresh)
 		COMMAND_RANGE_HANDLER(ID_ACTIVITY_LOW, ID_ACTIVITY_MAXIMUM, OnThreadActivity)
+		COMMAND_RANGE_HANDLER(ID_WORKLOAD_SPIN, ID_WORKLOAD_MEMORY, OnThreadWorkload)
 		COMMAND_RANGE_HANDLER(ID_PRIORITY_IDLE, ID_PRIORITY_TIMECRITICAL, OnSetThreadPriority)
 		COMMAND_RANGE_HANDLER(ID_PRIORITYCLASS_IDLE, ID_PRIORITYCLASS_REALTIME, OnSetProcessPriority)
 		COMMAND_ID_HANDLER(ID_THREAD_CREATENEWTHREAD, OnNewThread)
@@ -68,12 +70,14 @@ private:
 	static CString GetThreadType(Thread& t);
 	static bool CompareItems(Thread& t1, Thread& t2, const SortInfo* si);
 	static PCWSTR ActivityLevelToString(ActivityLevel level);
+	static PCWSTR WorkloadTypeToString(WorkloadType type);
 	static PCWSTR ThreadPriorityToString(int priority);
 	static std::pair<COLORREF, COLORREF> ActivityLevelToColor(ActivityLevel level);
 	static WORD PriorityClassToId(int priority);
 	static PCWSTR PriorityClassToString(int pc);
 
 	void Redraw();
+	void DrawHistory(NMLVCUSTOMDRAW* lvcd, int index, Thread& t);
 	void UpdateUI();
 	void ResizeColumns();
 	int GetFontCharWidth(HFONT hFont) const;
@@ -86,6 +90,7 @@ private:
 	LRESULT OnRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadActivity(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnThreadWorkload(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnNewThread(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT On4NewThread(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnThreadResume(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
